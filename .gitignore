@@ -1,0 +1,30 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv*/
+build/
+dist/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+
+# Datasets and generated artifacts
+data/
+datasets/
+artifacts/*
+!artifacts/.gitkeep
+*.pt
+*.pth
+*.onnx
+
+# Local editor configuration
+.vscode/
+
+# Operating system
+Thumbs.db
+.DS_Store
