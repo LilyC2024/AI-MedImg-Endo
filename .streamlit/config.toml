@@ -1,0 +1,15 @@
+[browser]
+gatherUsageStats = false
+
+[server]
+address = "127.0.0.1"
+port = 8503
+maxUploadSize = 16
+
+[theme]
+base = "light"
+primaryColor = "#147d73"
+backgroundColor = "#f5f7fa"
+secondaryBackgroundColor = "#edf3f5"
+textColor = "#172d3b"
+font = "sans serif"

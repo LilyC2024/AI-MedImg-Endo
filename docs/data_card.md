@@ -67,3 +67,13 @@ This dataset supports polyp segmentation experiments.
 It does not by itself establish malignancy diagnosis, screening
 specificity, or performance on negative examinations.
 Exact duplicate checking does not exclude near-duplicate leakage.
+
+## Implemented image-first release — 23 October 2026
+
+The earlier preparation notes above remain historical. This release adds reusable
+inventory/split commands, a frozen near-duplicate-grouped manifest, actual CPU
+training and test evaluation. The retrieved official archive matched the recorded
+hash. New split: 933 heuristic groups; 682 training/150 validation/168 test images.
+Patient independence remains unestablished and real negative-examination coverage
+remains absent. Source hashes are rechecked by the loader; mask interpolation
+remains nearest-neighbor. [Commands](TRAINING.md) · [Actual evidence](../EVALUATION.md).

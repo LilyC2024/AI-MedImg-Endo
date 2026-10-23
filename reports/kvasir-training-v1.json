@@ -1,0 +1,86 @@
+{
+  "config": {
+    "model": "UNetSmall",
+    "size": 128,
+    "base": 8,
+    "batch_size": 8,
+    "seed": 42,
+    "threads": 4,
+    "epochs": 12,
+    "learning_rate": 0.001,
+    "loss": "BCEWithLogits+softDice",
+    "preprocess": "RGB/255; bilinear image resize; nearest mask >=128",
+    "manifest_sha256": "6d128ca97fb0a1a3df7dcf7bf9a0bac17d66b5bb64cded231f90b26d19daa78d",
+    "threshold": 0.5,
+    "min_area_px": 8,
+    "evaluation_scope": "positive-images-only"
+  },
+  "config_sha256": "68edc3d60473e258158be7a1c3efedaaf608b8ed499f352c4d31b5a9d5fd78cb",
+  "checkpoint_sha256": "b1f5c0268e0d4dc1a25d59025194a8875eb1bb585aac0026636a752bdc19c61e",
+  "history": [
+    {
+      "epoch": 1,
+      "training_loss": 1.3709495661894946,
+      "validation_loss": 1.1750982387860616
+    },
+    {
+      "epoch": 2,
+      "training_loss": 1.1448287565337598,
+      "validation_loss": 1.1287913505236309
+    },
+    {
+      "epoch": 3,
+      "training_loss": 1.1055060139149864,
+      "validation_loss": 1.08577006260554
+    },
+    {
+      "epoch": 4,
+      "training_loss": 1.0813423367189872,
+      "validation_loss": 1.06534343679746
+    },
+    {
+      "epoch": 5,
+      "training_loss": 1.0622844573689345,
+      "validation_loss": 1.0711821325620015
+    },
+    {
+      "epoch": 6,
+      "training_loss": 1.039027589507117,
+      "validation_loss": 1.0786847813924154
+    },
+    {
+      "epoch": 7,
+      "training_loss": 1.033419951315849,
+      "validation_loss": 1.0089499759674072
+    },
+    {
+      "epoch": 8,
+      "training_loss": 1.0075835223771261,
+      "validation_loss": 0.9823643344640732
+    },
+    {
+      "epoch": 9,
+      "training_loss": 1.0023249898138633,
+      "validation_loss": 1.0096308966477712
+    },
+    {
+      "epoch": 10,
+      "training_loss": 0.9986770273653294,
+      "validation_loss": 0.9787810405095418
+    },
+    {
+      "epoch": 11,
+      "training_loss": 0.9888345419137009,
+      "validation_loss": 0.9875771003961563
+    },
+    {
+      "epoch": 12,
+      "training_loss": 0.980301920794322,
+      "validation_loss": 1.0418390675385794
+    }
+  ],
+  "elapsed_seconds": 129.76,
+  "torch_version": "2.14.1+cpu",
+  "device": "cpu",
+  "test_used_for_selection": false
+}

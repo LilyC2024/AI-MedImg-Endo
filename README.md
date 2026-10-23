@@ -1,72 +1,68 @@
-﻿# Endoscopy Polyp Segmentation
+# LOVISA Endoscopy — Image-first polyp research assistant
 
-A research prototype for polyp segmentation in endoscopic images,
-with reproducible training, ONNX export, and CPU/NPU deployment validation.
+A locally deployed application that proposes candidate polyp regions in a single
+colonoscopy image, shows source-linked annotations and pixel-area measurements,
+and requires human review. It connects to
+[LOVISA](https://github.com/LilyC2024/Medical-AI) alongside the lung-nodule CT
+companion. It does not diagnose cancer or establish a normal examination.
 
-This project is under development. It is not intended for clinical use.
-Polyp segmentation does not establish cancer diagnosis or performance
-on examinations without polyps.
+```mermaid
+flowchart LR
+    I[Permitted research image / artificial example] --> M[Local U-Net or non-ML fixture]
+    M --> P[Source + predicted mask + candidate outline]
+    P --> H[Explicit human image review]
+    H --> R[Standalone research summary]
+    P -->|Artificial studies only| L[LOVISA image acceptance]
+    L --> C[History + CT + endoscopy draft]
+    C --> A[Separate clinician approval]
+```
 
-## Current Status
+## What works
 
-Completed:
-- Windows development environment setup.
-- PyTorch CPU forward/backward smoke test.
-- Kvasir-SEG download and structural validation.
-- Mask-value and exact decoded-image duplicate checks.
-- OpenVINO CPU/NPU convolution smoke test.
+- Dataset validation, related-image grouping and immutable train/validation/test manifests.
+- Compact U-Net CPU training, held-out evaluation, ONNX export and actual CPU parity checks.
+- ONNX Runtime CPU inference; optional OpenVINO CPU/NPU with explicit device selection and numerical checks.
+- A local Streamlit image viewer with candidate decisions and separate research-review export.
+- A bounded synthetic exchange into LOVISA: candidate inspection, authenticated acceptance and combined reports with pictures.
 
-Not yet completed:
-- Similar-image analysis and a frozen dataset split.
-- Segmentation model training and held-out evaluation.
-- Full-model ONNX export and CPU/NPU parity testing.
-- Latency benchmarking and an inference service.
+The first **exploratory Kvasir-SEG baseline** achieved mean Dice **0.446** on
+168 held-out positive images. It has no real negative-examination evaluation and
+patient independence is not established. These results are insufficient for
+clinical deployment. Artificial-image tests measure software behavior only.
+[Actual results and limitations](EVALUATION.md).
 
-## Planned Baseline
+## Run locally
 
-- Model: compact 2D U-Net, base channels 16.
-- Input: RGB images, initially 256 x 256.
-- Target: binary polyp mask.
-- Loss: BCE with logits plus Dice loss.
-- Training: PyTorch on CPU.
-- Deployment: ONNX Runtime CPU and OpenVINO CPU/NPU.
-- NPU inference: fixed input shape, batch size 1.
+Use Python 3.12 for the validated ML environment. Reuse an existing `.venv`.
+For a fresh checkout:
 
-These choices will be confirmed through compatibility and runtime tests.
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install torch==2.14.1+cpu --index-url https://download.pytorch.org/whl/cpu
+.venv/bin/python -m pip install -e '.[ml,ui,dev]'
+.venv/bin/python -m endo.cli demo --output artifacts/first-example
+.venv/bin/python -m streamlit run app.py --server.address=127.0.0.1 --server.port=8503
+```
 
-## Repository Layout
+The non-ML artificial example needs no weights. Installed-model mode requires
+explicit training and registration; inference never downloads weights or calls a
+cloud service. Windows commands and optional NPU setup are in [Setup](docs/SETUP.md).
 
-| Directory | Purpose |
+## Documentation
+
+| Guide | Purpose |
 | --- | --- |
-| src/endo | Dataset, model, training, and inference modules |
-| scripts | Command-line entry points |
-| configs | Reproducible configurations |
-| docs | Data, architecture, evaluation, and deployment documentation |
-| tests | Tests for critical behavior |
-| reports | Evaluation and benchmark evidence |
-| artifacts | Local generated models; excluded from Git |
+| [Quick workflow](docs/WORKFLOWS.md) | Run, inspect, review and export an image study |
+| [Training and evaluation](docs/TRAINING.md) | Data acquisition, frozen splits, training, export and benchmark commands |
+| [LOVISA integration](docs/LOVISA.md) | Separate environments, synthetic bridge, patient binding and reports |
+| [Architecture and agents](docs/ARCHITECTURE.md) | Data structures, model versus Agent versus LLM responsibilities |
+| [Code reference](docs/CODE_REFERENCE.md) | Folder/module/function responsibilities |
+| [Data card](docs/data_card.md) | Source terms, dataset validation and known gaps |
+| [Evaluation](EVALUATION.md) | Executed tests, real inference, timings and untested hardware |
+| [Implementation plan](PLAN.md) | Tested phase gates |
 
-## Data
-
-Kvasir-SEG is stored outside this repository.
-See [the data card](docs/data_card.md) for acquisition details,
-validation results, and limitations.
-
-## Development Environment
-
-Initial validation used:
-- Windows 11 Pro, build 26200.
-- Intel Core Ultra 7 155U; approximately 32 GB RAM.
-- Intel AI Boost NPU, driver 32.0.100.5540.
-- Python 3.12.1.
-- PyTorch 2.14.1+cpu.
-- OpenVINO 2026.3.1.
-
-Training and inference use separate Python environments.
-A successful small-model NPU test does not establish full U-Net support.
-
-## Reproducibility
-
-Runnable commands will be added after implementation and verification.
-Reports must identify the dataset split, configuration, model checkpoint,
-software versions, and execution device.
+Models, datasets, credentials and generated workspaces stay out of Git. Research
+data are not synthetic patient records. Code publication grants no dataset or
+third-party model rights. Kvasir-SEG use is research/education only unless its
+publisher grants commercial permission. This repository has no selected
+project-wide redistribution license. [Security and scope](SECURITY.md).

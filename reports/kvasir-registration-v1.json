@@ -1,0 +1,11 @@
+{
+  "schema_version": "endo-model-v1",
+  "checkpoint_sha256": "b1f5c0268e0d4dc1a25d59025194a8875eb1bb585aac0026636a752bdc19c61e",
+  "onnx_sha256": "f51af38dae0a300658230314e2ec1c392acd15ff6bd2f334e36fea4f623c9a10",
+  "config_sha256": "68edc3d60473e258158be7a1c3efedaaf608b8ed499f352c4d31b5a9d5fd78cb",
+  "onnx_parity_passed": true,
+  "max_logit_absolute_error": 3.814697265625e-06,
+  "parity_probe_count": 3,
+  "torch_version": "2.14.1+cpu",
+  "onnxruntime_version": "1.31.0"
+}
