@@ -80,6 +80,8 @@ new UI and review controls; a live visual check of the new view remains a limita
 
 ## Release completion
 
-Local final suite: **34 passed in 4.18s**, with two documented legacy ONNX-export deprecation warnings. This includes actual tiny artificial CPU training/export and optional OpenVINO CPU parity/unavailable-NPU checks. Documentation links (12 Markdown files), package consistency, source compilation, Ruff F/I and publication inventory checks passed.
+Local final suite: **35 passed in 4.22s**, with two documented legacy ONNX-export deprecation warnings. This includes actual tiny artificial CPU training/export and optional OpenVINO CPU parity/unavailable-NPU checks. Documentation links (12 Markdown files), package consistency, source compilation, Ruff F/I and publication inventory checks passed.
 
 The model was re-evaluated with the final editable installation and OpenVINO CPU numerical gate: maximum three-probe logit error 3.8147e-6. Final installed producer → LOVISA validation took 0.70s and left approval pending. Hosted CI/publication outcomes are appended after execution. No clinical report is automatically approved by release.
+
+Initial hosted Linux checks passed. The first Windows run found platform-native backslashes in generated split manifests. The loader/writer now require canonical relative POSIX paths, with a cross-platform regression. The frozen Linux research split and model/checkpoint results are unchanged. Windows verification is rerun before release completion.

@@ -251,3 +251,19 @@ def test_original_source_bytes_and_prediction_are_separate_and_verified(tmp_path
     (output / "provenance.json").write_text(json.dumps(provenance))
     with pytest.raises(ValueError, match="provenance"):
         verify(output)
+
+
+def test_split_manifest_uses_portable_relative_posix_paths(tmp_path):
+    root = dataset(tmp_path)
+    manifest = freeze(root, root / "split.json")
+    assert all(
+        "\\" not in row["image"] and "\\" not in row["mask"]
+        for row in manifest["records"]
+    )
+    row = manifest["records"][0]
+    row["image"] = row["image"].replace("/", "\\")
+    manifest.pop("manifest_sha256")
+    manifest["manifest_sha256"] = digest(manifest)
+    (root / "split.json").write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="POSIX"):
+        load_manifest(root / "split.json", root)

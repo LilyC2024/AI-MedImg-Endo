@@ -49,8 +49,8 @@ def inventory(root, negatives=None):
             raise ValueError("Image/mask dimensions differ")
         records.append(
             {
-                "image": str(image.relative_to(root)),
-                "mask": str(mask.relative_to(root)),
+                "image": image.relative_to(root).as_posix(),
+                "mask": mask.relative_to(root).as_posix(),
                 "image_sha256": sha(image.read_bytes()),
                 "mask_sha256": sha(mask.read_bytes()),
                 "decoded_sha256": sha(rgb.tobytes()),
@@ -68,7 +68,7 @@ def inventory(root, negatives=None):
                 rgb = np.array(handle.convert("RGB"))
             records.append(
                 {
-                    "image": str(relative),
+                    "image": relative.as_posix(),
                     "mask": None,
                     "image_sha256": sha(image.read_bytes()),
                     "mask_sha256": None,
@@ -162,6 +162,8 @@ def load_manifest(path, root):
                 if key == "image" or row["positive"]:
                     raise ValueError("Missing required source")
                 continue
+            if "\\" in row[key] or Path(row[key]).is_absolute():
+                raise ValueError("Dataset manifest paths must be relative POSIX paths")
             file = root / row[key]
             if (
                 file.is_symlink()
