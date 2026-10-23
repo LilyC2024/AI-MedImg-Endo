@@ -82,6 +82,23 @@ new UI and review controls; a live visual check of the new view remains a limita
 
 Local final suite: **35 passed in 4.22s**, with two documented legacy ONNX-export deprecation warnings. This includes actual tiny artificial CPU training/export and optional OpenVINO CPU parity/unavailable-NPU checks. Documentation links (12 Markdown files), package consistency, source compilation, Ruff F/I and publication inventory checks passed.
 
-The model was re-evaluated with the final editable installation and OpenVINO CPU numerical gate: maximum three-probe logit error 3.8147e-6. Final installed producer → LOVISA validation took 0.70s and left approval pending. Hosted CI/publication outcomes are appended after execution. No clinical report is automatically approved by release.
+The model was re-evaluated with the final editable installation and OpenVINO CPU numerical gate: maximum three-probe logit error 3.8147e-6. Final installed producer → LOVISA validation took 0.70s and left approval pending. Hosted CI/publication outcomes are recorded below. No clinical report is automatically approved by release.
 
 Initial hosted Linux checks passed. The first Windows run found platform-native backslashes in generated split manifests. The loader/writer now require canonical relative POSIX paths, with a cross-platform regression. The frozen Linux research split and model/checkpoint results are unchanged. Windows verification is rerun before release completion.
+
+
+### Hosted verification and publication completed
+
+[Hosted run 40002316931](https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40002316931)
+passed Linux and Windows checks on source `bff92c23dd9e2679d38a7dcd4274b1cb5035a35f`.
+Each hosted environment passed 34 tests and skipped the optional OpenVINO test
+because that extra is not installed there; the local environment passed all 35.
+The Windows result includes actual tiny artificial CPU training, ONNX export,
+Streamlit and worker checks, not Intel NPU hardware validation. The initial
+Windows path failure is fixed; no test or validation was removed to hide it.
+
+[LOVISA hosted run 40002402873](https://github.com/LilyC2024/Medical-AI/actions/runs/40002402873)
+passed Python 3.10/3.12 regressions plus actual artificial endoscopy fixture and
+trained-model producer/receiver checks, alongside all retained CT integrations.
+Local trees were synchronized with published source. Final documentation-only
+commits do not alter the tested implementation or frozen experiment artifacts.

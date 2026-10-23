@@ -5,7 +5,7 @@
 Validated on Linux/Python 3.12 with CPU PyTorch and ONNX Runtime. The original
 Windows 11/Core Ultra 7 155U environment snapshots remain historical preparation
 records; the new full model has not been run on that Windows/NPU device here.
-Do not assume a convolution smoke establishes U-Net compatibility.
+Hosted Windows Server CI now passes actual tiny artificial CPU training/export and UI checks. This is separate from the user's Intel NPU/driver. Do not assume a convolution smoke establishes full-model NPU compatibility.
 
 ## Environment
 
