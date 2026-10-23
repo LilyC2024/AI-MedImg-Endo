@@ -79,3 +79,13 @@ centre/video independence explicit and do not claim patient independence. Reserv
 external data before experiments. Publish negative-image false alarms and
 small/flat-region failure examples alongside overlap metrics. This release does
 not include or claim those results.
+
+## 24-epoch real-data repeat
+
+Use the same frozen Kvasir split and commands above with
+`--output artifacts/kvasir-research-v2 --epochs 24 --size 128 --base 8 --threads 4`.
+Export before inference/evaluation. The checkpoint is selected by validation loss;
+the previously examined test partition is exploratory, not an independent external
+benchmark. Current repeat: Dice 0.544, IoU 0.413 on 168 positives, no negatives.
+[Full measured outcomes](../EVALUATION.md). Never tune on or advertise the three
+fixed display examples as an accuracy benchmark.

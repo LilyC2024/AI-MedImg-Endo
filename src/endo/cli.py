@@ -6,10 +6,10 @@ from pathlib import Path
 from uuid import uuid4
 
 import numpy as np
+from endo_contracts import ModelInfo, sha
 from PIL import Image
 
 from endo.fixture import fixture_probability, phantom
-from endo_contracts import ModelInfo, sha
 
 
 def main():
@@ -62,6 +62,10 @@ def main():
         if name == "infer":
             item.add_argument("--image", required=True)
             item.add_argument("--research-use-attested", action="store_true")
+            item.add_argument(
+                "--research-provenance",
+                help="Public dataset/license/subject JSON for composite LOVISA export",
+            )
     args = parser.parse_args()
     command = args.command
     if command == "split":
@@ -184,6 +188,9 @@ def main():
         study_id=args.study_id or "endo-" + uuid4().hex[:16],
         input_kind=kind,
         original_bytes=original,
+        research=json.loads(Path(args.research_provenance).read_text())
+        if command == "infer" and args.research_provenance
+        else None,
     )
     print(
         json.dumps(

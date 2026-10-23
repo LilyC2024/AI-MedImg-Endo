@@ -1,5 +1,19 @@
 # Evaluation — image-first endoscopy research assistant
 
+## Public research-image extension — 23 October 2026
+
+- Final local regression: **37 passed in 5.15s**, with two existing ONNX-export deprecation warnings.
+- Actual Kvasir CPU repeat: 24 epochs, input 128×128/base8/batch8/seed42/four threads, same frozen 682/150/168 grouped split. Training took **365.949s** under concurrent CT load. Best validation loss **0.8189604**, epoch23; test pixels were not used for checkpoint selection.
+- Actual ONNX export parity passed; maximum logit absolute error **4.76837158203125e-06** on three probes. Registered checkpoint `23012881743e29bb1d5a5f3afa5f38598749770491504ca58a86bdb24452e5cc`.
+- Frozen positive test repeat: **168 images; Dice 0.5439824, IoU 0.4131187**; box-region recall/precision proxies 0.3869347/0.2150838. Median inference-plus-region extraction 0.2294s, p95 0.4379s. No negative examinations; no established patient independence. The test set had already been inspected in the initial baseline, so this is **exploratory**, not independent external validation. [Machine-readable results](reports/kvasir-research-v2-evaluation.json).
+- Three fixed real test JPEGs (first three manifest test rows, not selected by accuracy) produced 5/2/2 candidate regions. The first is 1348×1070, requiring >4-MiB probability storage: research-v2 now has a bounded 64-MiB archive/expanded limit and 16-MiB-plus-header artifacts. Synthetic-v1 retains its original smaller limits.
+- Actual first raw JPEG -> LOVISA local worker -> byte/pixel validator: **3.16s**, 5 candidates, 4 verified artifacts, all approvals pending. Dataset originals, masks, predictions and weights remain local and excluded from Git.
+- Combined real CT/endoscopy + actual local `gemma4:e2b` report smoke passed in **34.32s**, with four embedded evidence images and a 170-word report. Reviews were **scripted only in a disposable database**, never clinical approval in the actual app.
+
+CT imagery belongs to LIDC-IDRI-0002; Kvasir subject identity is unknown. The LOVISA history is fictional, and no cross-subject diagnosis is inferred. New public exports require separate research-v2 provenance and a fictional composite alias. Source/checkpoint hashes prove consistency, not inference authenticity or clinical validity. Real NPU execution and external clinical validation remain unperformed.
+
+The sections below record earlier releases and their then-current scope.
+
 [Overview](README.md) · [Reproduction](docs/TRAINING.md) · [Artifacts](reports/README.md)
 
 ## Actual research experiment — 23 October 2026

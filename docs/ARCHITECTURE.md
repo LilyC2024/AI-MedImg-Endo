@@ -41,7 +41,9 @@ clinical reasoning. No image-model score becomes a diagnosis or medication order
 ## Limits and trust
 
 The standalone application is a loopback research workbench. LOVISA remains a
-synthetic-only prototype. Archive hashes and reconstruction checks detect internal
+prototype with fictional histories and separate permitted public-image evidence. Archive hashes and reconstruction checks detect internal
 tampering but do not authenticate the machine that produced them. Local operating
 system/filesystem administrators are trusted. No model can approve its own output,
 modify clinical facts, lower Python safety escalation or approve a final report.
+
+Research-v2 preserves the same source/probability/annotation validation as synthetic-v1, adds public provenance, and requires a fictional composite alias. No additional LLM agent or model database access is introduced.

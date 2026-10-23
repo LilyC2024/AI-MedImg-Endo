@@ -14,3 +14,13 @@ malignancy classification and calibrated millimetre measurement are out of scope
    Status: passed — 227 LOVISA tests; actual fixture and installed-model exchanges, with approvals pending.
 4. **Release** — actual training/inference evidence, honest limitations, full
    tests, docs and CI, publication in both repositories. Local checks passed: 35 companion/231 LOVISA tests, actual Kvasir training/evaluation, CPU/ONNX/OpenVINO parity and producer-consumer smokes. Complete: both repositories published; Linux/Windows standalone CI and LOVISA Python 3.10/3.12 plus actual endoscopy/CT integration jobs passed. See EVALUATION.md.
+
+## Public research exchange
+
+Extend synthetic-v1 with separate research-v2 evidence and original-byte provenance;
+public RGB inference exports only to explicitly fictional composite cases, without
+issuing human approval. Re-run actual Kvasir training/evaluation as an exploratory
+repeat, preserve frozen groups and state that the previously viewed test set is
+not an independent prospective validation.
+
+Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch real-image CPU training and 168-image evaluation. Compatible LOVISA publishing and hosted checks follow.

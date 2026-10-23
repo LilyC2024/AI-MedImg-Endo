@@ -1,79 +1,39 @@
-﻿# Data Card: Kvasir-SEG
+# Kvasir-SEG data card
 
-## Source
+[Overview](../README.md) · [Training](TRAINING.md) · [Measured outcomes](../EVALUATION.md)
 
-- Dataset page: https://datasets.simula.no/kvasir-seg/
-- Download: https://datasets.simula.no/downloads/kvasir-seg.zip
-- Downloaded archive size: 46,227,172 bytes.
-- Archive SHA-256:
-  03b30e21d584e04facf49397a2576738fd626815771afbbf788f74a7153478f7
+Source: [Simula Kvasir-SEG](https://datasets.simula.no/kvasir-seg/).
+Publisher terms permit research/education; commercial use requires permission.
+Dataset pixels are not committed, and this repository grants no dataset rights.
 
-The hash identifies the downloaded archive. It has not been compared
-against a publisher-provided checksum.
+The downloaded archive has 46,227,172 bytes, SHA-256
+`03b30e21d584e04facf49397a2576738fd626815771afbbf788f74a7153478f7`.
+This identifies the local copy; it was not compared with a publisher checksum.
+Use an explicit `--data /absolute/path/Kvasir-SEG` directory containing `images/`
+and `masks/`. No hardcoded personal directory or runtime download is required.
 
-Read the publisher's current terms before use or redistribution.
-This repository does not grant rights to the dataset.
-Dataset files are not committed to Git.
+## Structure and split
 
-## Local Storage
+There are 1,000 positive-image/mask pairs. Manifest preparation checks files,
+decoded pixels, matching dimensions, mask values and content hashes. Masks are
+thresholded at 128. Exact decoded duplicates and dHash Hamming distance <=4
+are grouped before partitioning. The frozen split has 933 related-image groups:
+682 training images, 150 validation and 168 test. Patient identities and patient
+independence are **not established** by this grouping.
 
-Relative to the parent medical-ai working directory:
+The data contain no negative examinations. Segmentation overlap therefore cannot
+establish screening specificity or missed-polyp rates. Connected mask regions
+are not adjudicated lesion identities; pixel area is not millimetre size or
+histology. Acquisition date and anatomical segment are not inferred.
 
-datasets/kvasir-seg/Kvasir-SEG/
-- images/
-- masks/
+## Current use
 
-Future commands will accept a configurable dataset path.
+The 24-epoch CPU repeat selects its checkpoint using validation loss. Its already
+examined test split is exploratory, not independent validation: mean Dice 0.544,
+IoU 0.413 on 168 positives. No new test-set tuning or best-image display selection
+is used. The LOVISA kit uses the first three frozen test-manifest rows, retaining
+original bytes, reference masks and predictions separately.
 
-## Initial Validation
-
-- Images: 1,000.
-- Masks: 1,000.
-- Missing image/mask pairs: 0.
-- Unreadable pairs or spatial-size mismatches: 0.
-- Unique mask grayscale values: 19.
-- Mask grayscale range: 0 to 255.
-- Empty masks at threshold 128: 0.
-- Full-foreground masks at threshold 128: 0.
-- Foreground fraction, minimum/median/maximum:
-  0.0047 / 0.1140 / 0.8118.
-- Exact decoded-RGB image duplicate groups: 0.
-
-Validation was performed locally during environment preparation.
-A reusable validation script and machine-readable report are pending.
-
-## Label Processing
-
-The initial binary target is grayscale >= 128.
-Masks must use nearest-neighbor interpolation for resizing.
-Image and mask spatial transformations must remain aligned.
-
-## Split Policy
-
-No train/validation/test split has been frozen.
-
-Before splitting:
-- Check visually similar images and potential related frames.
-- Keep identified related images in the same split.
-- Record the split in a versioned manifest.
-- Reserve the test split from model and threshold selection.
-
-Patient independence has not been established. An image-level split
-must not be described as a patient-independent evaluation.
-
-## Limitations
-
-This dataset supports polyp segmentation experiments.
-It does not by itself establish malignancy diagnosis, screening
-specificity, or performance on negative examinations.
-Exact duplicate checking does not exclude near-duplicate leakage.
-
-## Implemented image-first release — 23 October 2026
-
-The earlier preparation notes above remain historical. This release adds reusable
-inventory/split commands, a frozen near-duplicate-grouped manifest, actual CPU
-training and test evaluation. The retrieved official archive matched the recorded
-hash. New split: 933 heuristic groups; 682 training/150 validation/168 test images.
-Patient independence remains unestablished and real negative-examination coverage
-remains absent. Source hashes are rechecked by the loader; mask interpolation
-remains nearest-neighbor. [Commands](TRAINING.md) · [Actual evidence](../EVALUATION.md).
+LOVISA's patient history is fictional. Its Kvasir subject is recorded as unknown
+with the public source image identifier; its CT comes from a different dataset
+subject. Research-v2 provenance never asserts that these are one real patient.

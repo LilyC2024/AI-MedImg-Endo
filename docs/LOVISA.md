@@ -4,8 +4,10 @@
 
 LOVISA provides one patient workspace with separate history, CT and endoscopy
 views. The endoscopy companion runs image inference in its own Python environment.
-LOVISA accepts only generated-synthetic image evidence, never public research
-patient images. Model training/evaluation data remain in this standalone project.
+LOVISA accepts artificial-v1 or separately labelled public-research-v2 evidence.
+Public images require a fictional `research-composite-` case and explicit
+dataset/license/source provenance. Their research subjects are unrelated to the
+fictional history and other imaging modalities. Clinical records remain unsupported.
 
 ## Produce a pending artificial study
 
@@ -21,7 +23,7 @@ fixture, never a fallback for failed inference. Use a fresh study/output each ru
 LOVISA discovers the sibling `AI-MedImg-Endo/.venv`. Otherwise configure
 `LOVISA_ENDO_ROOT`, `LOVISA_ENDO_MODEL_DIR` and `LOVISA_ENDO_BACKEND` outside the
 review UI. Choose Endoscopy review, inspect candidates, resolve all decisions,
-add a note, attest inspection, then include the study. Complete safety and final
+optionally add a note, retain the selected inspection confirmation, then explicitly include the study. Complete safety and final
 clinical review separately. [Receiver guide](https://github.com/LilyC2024/Medical-AI/blob/main/docs/ENDOSCOPY.md).
 
 ## Contract
@@ -52,3 +54,28 @@ reasoning and Python safety specialists. Only bounded history reasoning calls
 local Ollama. Accepted endoscopy evidence is composed deterministically after
 reasoning; images, scores and imaging notes do not enter the LLM or expand its
 hypothesis catalog. No cloud inference or remote model API is used.
+
+## Export a permitted public image
+
+Create a provenance JSON with `dataset`, HTTPS `source_url`, `license`,
+`research_subject_id` (say unknown when only an image identifier is known),
+`original_sha256` of the actual JPEG/PNG bytes and `composite_case: true`.
+Then use the registered real-data model, never fixture/synthetic-only weights:
+
+```bash
+.venv/bin/python -m endo.cli infer --image /absolute/path/research.jpg --research-use-attested --research-provenance /absolute/path/provenance.json --model-dir artifacts/kvasir-research-v2 --patient-id research-composite-demo --study-id research-endo-01 --output artifacts/research-endo-01
+```
+
+The workspace preserves original bytes, canonical pixels and model predictions
+separately and verifies their hashes before export. `bundle.endo.zip` is pending,
+not a human-reviewed result. Research-v2 permits up to 2048 pixels per side and
+keeps the same exact four derived artifacts/bounded probability reconstruction.
+The consumer cannot verify original JPEG bytes absent from its canonical PNG
+bundle; provenance is an operator declaration, not independent authentication.
+
+In LOVISA, the fixed research kit recognises the exact three supplied Kvasir JPGs
+for local re-analysis. Opening a prepared bundle avoids repeat inference. Notes
+can be blank; candidate uncertainty still blocks inclusion. Clinical/safety/final
+review rules remain independent of imaging. [Prepare files and terms](https://github.com/LilyC2024/Medical-AI/blob/main/docs/RESEARCH_IMAGES.md).
+
+Research-v2 allows a bounded 64-MiB archive/expanded size and up to 16 MiB plus NPY header per artifact, supporting real large-image probability maps. Synthetic-v1 retains its original 16-MiB total and 4-MiB artifact limits.

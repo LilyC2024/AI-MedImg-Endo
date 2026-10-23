@@ -3,8 +3,9 @@
 import json
 from pathlib import Path
 
-from endo.exchange import export_bundle, make_study
 from endo_contracts import LIMITATION, Review, digest, overlay_pixels, png, sha
+
+from endo.exchange import export_bundle, make_study
 
 
 def create(
@@ -17,6 +18,7 @@ def create(
     study_id,
     input_kind,
     original_bytes=None,
+    research=None,
 ):
     """Persist original bytes, decoded source and immutable predictions separately."""
     study, mask = make_study(
@@ -60,17 +62,25 @@ def create(
         },
     }
     (output / "provenance.json").write_text(json.dumps(provenance, indent=2))
-    if input_kind == "generated-synthetic":
-        (output / "bundle.endo.zip").write_bytes(export_bundle(study, source, p))
+    if research is not None:
+        from endo_contracts import PublicResearchSource
+
+        research = PublicResearchSource.model_validate(research)
+        if research.original_sha256 != sha(original):
+            raise ValueError("Research provenance does not match original image bytes")
+        (output / "research.json").write_text(research.model_dump_json(indent=2))
+    if input_kind == "generated-synthetic" or research is not None:
+        (output / "bundle.endo.zip").write_bytes(
+            export_bundle(study, source, p, research=research)
+        )
     return study
 
 
 def verify(output):
     """Recheck original-source association and every derived workspace annotation."""
     import numpy as np
-    from PIL import Image
-
     from endo_contracts import Study
+    from PIL import Image
 
     output = Path(output)
     study = Study.model_validate_json((output / "study.json").read_text())

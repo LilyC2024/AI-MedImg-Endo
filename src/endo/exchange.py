@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import numpy as np
-
 from endo_contracts import (
+    RESEARCH_VERSION,
     Artifact,
     Bundle,
     Study,
@@ -48,7 +48,7 @@ def make_study(source, probability, model, *, patient_alias, study_id, input_kin
     return study, mask
 
 
-def export_bundle(study, source, probability, *, job_id=None):
+def export_bundle(study, source, probability, *, job_id=None, research=None):
     """Export only synthetic pending evidence, then validate the complete archive."""
     mask, candidates = regions(
         probability, study.model.threshold, study.model.min_area_px
@@ -63,7 +63,11 @@ def export_bundle(study, source, probability, *, job_id=None):
         ),
     }
     bundle = Bundle(
-        synthetic=True,
+        schema_version=RESEARCH_VERSION
+        if research is not None
+        else "lovisa-endo-image-v1",
+        synthetic=research is None,
+        research=research,
         patient_id=study.patient_alias,
         study_id=study.study_id,
         job_id=job_id or uuid4().hex,

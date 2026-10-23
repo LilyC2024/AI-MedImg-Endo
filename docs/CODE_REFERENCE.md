@@ -25,3 +25,12 @@
 Public callables carry module/function docstrings. This index explains boundaries;
 [Training](TRAINING.md), [Workflow](WORKFLOWS.md) and [Integration](LOVISA.md)
 contain command-level details and measurement limitations.
+
+## Research evidence extension
+
+`endo_contracts.PublicResearchSource` and `Bundle.consistent` keep public-v2 and
+synthetic-v1 distinct. `exchange.export_bundle(research=...)` exports verified
+public predictions; `workspace.create(research=...)` checks original byte hashes
+and preserves source/probability/provenance. `cli infer --research-provenance`
+exposes this path. Shared `worker.LocalJob(input_files=...)` stages only bounded
+basename inputs before launching the local process. No review is generated.
