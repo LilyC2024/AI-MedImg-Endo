@@ -118,3 +118,7 @@ passed Python 3.10/3.12 regressions plus actual artificial endoscopy fixture and
 trained-model producer/receiver checks, alongside all retained CT integrations.
 Local trees were synchronized with published source. Final documentation-only
 commits do not alter the tested implementation or frozen experiment artifacts.
+
+## Final public-research publication checks
+
+Tested producer `81ff9f53a0baa9b40ff396283ef1dd9f430bf170` passed its [hosted workflow](https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40015138472). Both Linux and Windows jobs passed after the explicit import-classification fix; OpenVINO remains an optional local check. The follow-up changes in this section and PLAN.md are documentation only. No datasets, weights, accounts or generated research-image reports were published.

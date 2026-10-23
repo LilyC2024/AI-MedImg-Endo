@@ -23,4 +23,4 @@ issuing human approval. Re-run actual Kvasir training/evaluation as an explorato
 repeat, preserve frozen groups and state that the previously viewed test set is
 not an independent prospective validation.
 
-Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch real-image CPU training and 168-image evaluation. Compatible LOVISA publishing and hosted checks follow.
+Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch real-image CPU training and 168-image evaluation. Hosted checks passed: https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40015138472. Compatible LOVISA receiver is published; final receiver checks follow.
