@@ -3,9 +3,8 @@
 import json
 from pathlib import Path
 
-from endo_contracts import LIMITATION, Review, digest, overlay_pixels, png, sha
-
 from endo.exchange import export_bundle, make_study
+from endo_contracts import LIMITATION, Review, digest, overlay_pixels, png, sha
 
 
 def create(
@@ -79,8 +78,9 @@ def create(
 def verify(output):
     """Recheck original-source association and every derived workspace annotation."""
     import numpy as np
-    from endo_contracts import Study
     from PIL import Image
+
+    from endo_contracts import Study
 
     output = Path(output)
     study = Study.model_validate_json((output / "study.json").read_text())

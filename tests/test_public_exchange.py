@@ -1,9 +1,10 @@
 """Manufactured probability tests, never a live public-image accuracy measurement."""
 
 import pytest
+from test_foundation import sample
+
 from endo.exchange import export_bundle
 from endo_contracts import Study, read_exchange
-from test_foundation import sample
 
 
 def test_public_provenance_is_required_without_synthetic_relabelling():
@@ -34,6 +35,7 @@ def test_public_provenance_is_required_without_synthetic_relabelling():
 def test_research_probability_above_legacy_four_megabyte_limit():
     """Manufactured large RGB/map: actual Kvasir example dimensions need >4 MiB NPY."""
     import numpy as np
+
     from endo.exchange import make_study
 
     fixture, _, _ = sample()

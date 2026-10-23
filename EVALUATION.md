@@ -12,6 +12,8 @@
 
 CT imagery belongs to LIDC-IDRI-0002; Kvasir subject identity is unknown. The LOVISA history is fictional, and no cross-subject diagnosis is inferred. New public exports require separate research-v2 provenance and a fictional composite alias. Source/checkpoint hashes prove consistency, not inference authenticity or clinical validity. Real NPU execution and external clinical validation remain unperformed.
 
+Hosted checks exposed cwd-dependent first-party import classification. An explicit Ruff first-party package setting and canonical imports fix the Linux/Windows lint mismatch without changing inference. Local full suite was rerun; hosted outcomes follow.
+
 The sections below record earlier releases and their then-current scope.
 
 [Overview](README.md) · [Reproduction](docs/TRAINING.md) · [Artifacts](reports/README.md)

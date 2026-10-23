@@ -6,10 +6,10 @@ from pathlib import Path
 from uuid import uuid4
 
 import numpy as np
-from endo_contracts import ModelInfo, sha
 from PIL import Image
 
 from endo.fixture import fixture_probability, phantom
+from endo_contracts import ModelInfo, sha
 
 
 def main():

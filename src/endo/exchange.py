@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import numpy as np
+
 from endo_contracts import (
     RESEARCH_VERSION,
     Artifact,
