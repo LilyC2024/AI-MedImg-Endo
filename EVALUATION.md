@@ -1,5 +1,30 @@
 # Evaluation — image-first endoscopy research assistant
 
+## Reviewed branch integration — current release, 24 October 2026
+
+[Every branch and decision](docs/BRANCH_REVIEW.md). Original proposal branches
+are preserved; their claimed tests were not substituted for these actual runs.
+
+| Executed local check | Outcome |
+| --- | --- |
+| Final Endoscopy regression | **90 passed in 10.30s**, generated/scripted software checks |
+| Coverage | **78.88%**; configured floor passed |
+| Lint and scoped body type checks | Passed in existing Python 3.12 environment |
+| Installed dependency audit | No known vulnerabilities reported after targeted fixes |
+| SBOM | CycloneDX environment document generated under /tmp; no patient data |
+| Documentation/API/publication checks | Passed; source API regenerated |
+
+Coverage run: 90 passed in 16.02s. After annotation-only type-check repairs,
+final suite: 90 passed in 10.30s. Actual signed generated endoscopy CLI → LOVISA:
+2.11s, four artifacts, pinned proof verified. Actual existing registered-model
+synthetic transfer: 0.97s, one candidate, no approvals. No new training performed.
+All transfer work used temporary storage and issued no image or final-report
+approvals. No clinical validation, GPU training or NPU execution is claimed.
+Hosted checks for this new commit are not yet recorded; prior release runs below
+remain historical.
+
+## Previous release evidence
+
 ## Expert source review — 24 October 2026
 
 The independent reviewer repaired provenance/ZIP association, frozen-source group/

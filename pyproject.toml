@@ -1,19 +1,21 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "lovisa-endo"
 version = "0.1.0"
 description = "Local image-first polyp candidate research assistant and LOVISA companion"
-requires-python = ">=3.10"
-dependencies = ["numpy>=2,<3", "pillow>=10,<14", "pydantic>=2.10,<3"]
+license = "MIT"
+license-files = ["LICENSE", "DATA_TERMS.md"]
+requires-python = ">=3.11"
+dependencies = ["numpy>=2,<3", "pillow>=13,<14", "pydantic>=2.10,<3", "cryptography>=44,<51"]
 
 [project.optional-dependencies]
 ml = ["torch>=2.5,<3", "onnx>=1.17,<2", "onnxruntime>=1.20,<2", "onnxscript>=0.3,<1"]
 npu = ["openvino>=2025.0,<2027"]
 ui = ["streamlit>=1.65,<2"]
-dev = ["pytest>=8,<10", "ruff>=0.9"]
+dev = ["pytest>=8,<10", "ruff==0.17.2", "mypy==2.4.0", "pytest-cov==7.1.0", "pip-audit==2.10.1", "cyclonedx-bom==7.5.0"]
 
 [project.scripts]
 lovisa-endo = "endo.cli:main"
@@ -27,3 +29,17 @@ pythonpath = ["src"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["endo", "endo_contracts"]
+
+[tool.mypy]
+# Check public export/workspace/inference/signature function bodies.
+files = ["src/endo/exchange.py", "src/endo/workspace.py", "src/endo/inference.py", "src/endo_contracts/producer_signature.py"]
+ignore_missing_imports = true
+follow_imports = "silent"
+check_untyped_defs = true
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+# Software regression coverage floor; not clinical validation.
+fail_under = 70

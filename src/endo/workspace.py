@@ -33,6 +33,8 @@ def create(
     input_kind,
     original_bytes=None,
     research=None,
+    signing_key=None,
+    performance=None,
 ):
     """Persist original bytes, decoded source and immutable predictions separately."""
     study, mask = make_study(
@@ -59,7 +61,14 @@ def create(
         if research.original_sha256 != sha(original):
             raise ValueError("Research provenance does not match original image bytes")
     bundle = (
-        export_bundle(study, source, p, research=research)
+        export_bundle(
+            study,
+            source,
+            p,
+            research=research,
+            signing_key=signing_key,
+            performance=performance,
+        )
         if input_kind == "generated-synthetic" or research is not None
         else None
     )

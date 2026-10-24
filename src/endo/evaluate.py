@@ -9,7 +9,7 @@ from PIL import Image
 
 from endo.data import load_manifest
 from endo.inference import Predictor
-from endo_contracts import regions
+from endo_contracts import regions, sha
 
 
 def iou(a, b):
@@ -89,6 +89,7 @@ def evaluate(directory, root, manifest, output, *, backend="onnx-cpu"):
     report = {
         "schema_version": "endo-evaluation-v1",
         "model_onnx_sha256": predictor.info["onnx_sha256"],
+        "model_config_sha256": predictor.info["config_sha256"],
         "manifest_sha256": split["manifest_sha256"],
         "partition": "test",
         "backend": backend,
@@ -128,3 +129,52 @@ def evaluate(directory, root, manifest, output, *, backend="onnx-cpu"):
     with Path(output).open("x") as handle:
         json.dump(report, handle, indent=2)
     return report
+
+
+def declared_performance(registration, evaluation_path, *, backend="onnx-cpu"):
+    """Signed false-positive claim for the exact registered ONNX model, if evaluated.
+
+    The rate is 1 - box-region precision proxy on the frozen test partition. An
+    evaluation of a different model is rejected rather than silently reused.
+    """
+    from endo_contracts.producer_signature import NOT_MEASURED, Performance
+
+    if evaluation_path is None:
+        return NOT_MEASURED
+    path = Path(evaluation_path)
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > 10_000_000:
+        raise ValueError("Evaluation must be a bounded regular local JSON file")
+    raw = path.read_bytes()
+    report = json.loads(raw)
+    if report.get("schema_version") != "endo-evaluation-v1":
+        raise ValueError("Unsupported evaluation report")
+    if report.get("model_onnx_sha256") != registration["onnx_sha256"]:
+        raise ValueError("Evaluation report belongs to a different model")
+    if (
+        report.get("model_config_sha256") != registration.get("config_sha256")
+        or not registration.get("config_sha256")
+        or report.get("backend") != backend
+        or report.get("partition") != "test"
+    ):
+        raise ValueError("Evaluation must match this model configuration, backend and test partition")
+    count, negatives = report.get("images"), report.get("negative_images")
+    if type(count) is not int or count < 1 or type(negatives) is not int or not 0 <= negatives <= count:
+        raise ValueError("Invalid evaluation image counts")
+    precision = report.get("box_region_precision_proxy")
+    if precision is not None and (type(precision) not in (int, float) or not np.isfinite(precision) or not 0 <= precision <= 1):
+        raise ValueError("Invalid evaluation precision")
+    if precision is None:
+        return NOT_MEASURED
+    notes = [f"{report['partition']} partition"]
+    if not report.get("negative_images"):
+        notes.append("no negative images, so false alarms on normal exams are unknown")
+    notes.append("patient independence " + str(report.get("patient_independence")))
+    return Performance(
+        measured=True,
+        metric="1 - box-region precision proxy (share of candidate regions not matching a reference region)",
+        false_positive_fraction=1 - precision,
+        test_images=report["images"],
+        negative_images=report["negative_images"],
+        evaluation_sha256=sha(raw),
+        limitations="Exploratory: " + "; ".join(notes) + ".",
+    )

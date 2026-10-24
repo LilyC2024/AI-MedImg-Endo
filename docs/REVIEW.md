@@ -23,3 +23,7 @@ ONNX/OpenVINO checks are recorded separately in [Evaluation](../EVALUATION.md).
 Unsigned local hashes still establish consistency, not authenticity. Patient
 independence, negative-examination performance, clinical validity and NPU execution
 remain unproven.
+
+These were AI-assisted source reviews, not independent human clinical or security
+audits. Runtime specialist roles are separate from development review agents.
+See [branch integration decisions](BRANCH_REVIEW.md).

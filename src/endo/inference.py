@@ -35,7 +35,8 @@ def load_registration(directory):
         info.get("onnx_parity_passed") is not True
         or type(info.get("parity_probe_count")) is not int
         or info["parity_probe_count"] < 3
-        or type(parity_error) not in (int, float)
+        or not isinstance(parity_error, (int, float))
+        or isinstance(parity_error, bool)
         or not math.isfinite(parity_error)
         or parity_error < 0
     ):
@@ -49,15 +50,15 @@ def load_registration(directory):
     ):
         raise ValueError("Unsupported registered model configuration")
     # Validate postprocessing before loading a runtime, not after its first prediction.
-    ModelInfo(
-        name="UNetSmall",
-        backend="onnx-cpu",
-        checkpoint_sha256=info["checkpoint_sha256"],
-        recipe_sha256=digest(config),
-        threshold=config.get("threshold"),
-        min_area_px=config.get("min_area_px"),
-        evaluation_scope=config.get("evaluation_scope"),
-    )
+    ModelInfo.model_validate({
+        "name": "UNetSmall",
+        "backend": "onnx-cpu",
+        "checkpoint_sha256": info["checkpoint_sha256"],
+        "recipe_sha256": digest(config),
+        "threshold": config.get("threshold"),
+        "min_area_px": config.get("min_area_px"),
+        "evaluation_scope": config.get("evaluation_scope"),
+    })
     return info, config
 
 

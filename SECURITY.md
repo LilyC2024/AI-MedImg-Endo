@@ -37,7 +37,7 @@ are separate jobs. These controls are not a network or operating-system sandbox.
 Disk images, models, workspaces and local reviews are not encrypted by this app.
 Keep them outside Git. Do not publish source images, masks, weights, logs,
 credentials or a real patient reproduction in issues. Dataset/component licenses
-remain separate from code publication; no project-wide code license is selected.
+remain separate from code publication; source is MIT and separate DATA_TERMS.md covers datasets/weights.
 
 An image mask cannot establish cancer, histology, normality, anatomical location
 or physical size. Review completion is not regulatory approval. Report suspected
@@ -46,3 +46,12 @@ smallest artificial reproduction; no response-time commitment is promised.
 
 [Architecture](docs/ARCHITECTURE.md) · [Review repairs](docs/REVIEW.md) ·
 [Contribution checks](CONTRIBUTING.md).
+
+## Optional signed imaging exchange
+
+Ed25519 producer signatures bind exact manifest/artifact bytes. Keep signing keys
+outside Git and readable only by their owner. Exporter identity is not accuracy,
+clinical approval or independent validation of producer-declared metrics. LOVISA
+requires local public-key pinning for signed imports; unsigned research examples
+remain compatible unless its policy requires signatures. Shared archive bounds
+and structural checks also apply to malformed signed input.

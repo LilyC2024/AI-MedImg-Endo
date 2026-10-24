@@ -28,3 +28,12 @@ artifacts/*
 # Operating system
 Thumbs.db
 .DS_Store
+
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+
+# Exporter signing secrets
+*.key
+*.pem

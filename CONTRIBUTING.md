@@ -32,3 +32,8 @@ artificial fixtures and permitted aggregate metadata; exclude images, models and
 runtime reviews. Preserve third-party terms. Describe the concrete bug, new
 behavior, tests and residual limitations. A source publication is not deployment
 of a clinical service and adds no runtime LLM agents.
+
+Review [branch decisions](docs/BRANCH_REVIEW.md) before changing interoperability.
+Run the configured mypy/coverage gates and dependency audit in addition to tests.
+Shared signature source must remain identical across all three projects. Source
+code is MIT; dataset/model permissions remain separate.

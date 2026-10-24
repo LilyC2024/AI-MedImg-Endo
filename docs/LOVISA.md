@@ -100,3 +100,30 @@ provenance and source/mask/probability/overlay bytes. Old workspaces without the
 additional provenance/ZIP hash fields still require these direct comparisons.
 Exact shared-schema sync remains mandatory; no wire-format migration occurred in
 the expert review. [Verification](VALIDATION.md) · [Repairs](REVIEW.md).
+
+## Optional signed export
+
+Generate a new private key (never commit it):
+
+```bash
+.venv/bin/python -m endo.cli keygen --output /private/local-exporter.key
+```
+
+Pin the returned public key in LOVISA using
+`python -m medical_assistant.producer_trust --producer lovisa-endo --public-key <public_key_b64> --label <name>`.
+Keys require a trusted local identity check. Add `--signing-key /private/local-exporter.key`
+to the companion export/infer command, or set `LOVISA_SIGNING_KEY_FILE`. A private
+PEM must have owner-only POSIX permissions. No private key is sent to LOVISA.
+
+The shared module bounds archives, rejects ambiguous paths/JSON and binds all
+manifest-listed artifact hashes. Signed proof identifies the exporter, not clinical
+accuracy. Unknown signed keys are blocked by LOVISA; unsigned older examples stay
+compatible unless its trust settings require signatures. Existing schema versions
+are retained. See [branch review](BRANCH_REVIEW.md).
+
+Evaluation claims require explicit `--evaluation path/to/evaluation.json`; they
+must match the ONNX model, configuration, inference backend and test partition.
+Older evaluation files without configuration identity must be regenerated to
+attach metrics; omitting the flag preserves normal inference/export as unmeasured.
+The signed unmatched-candidate fraction is a producer-declared precision proxy,
+not screening specificity, histology or a cancer probability.

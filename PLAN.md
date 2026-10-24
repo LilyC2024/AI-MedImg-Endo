@@ -38,3 +38,13 @@ Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch r
    explicitly synchronized contracts and tested publication. Status: complete — 72 local tests, actual registered model/workspace/data
    checks and receiver transfers passed. Source published as 9391192; hosted
    40099084727 passed Linux/Windows. No new clinical/NPU validation claimed.
+
+## Claude branch integration — current review
+
+8. **Branch/runtime foundation** — inspect every remote branch, adopt useful signed
+   exchange and quality checks with adversarial regression repairs; preserve
+   unsigned legacy evidence and synchronize shared signature code with LOVISA/CT.
+   Status: passed; no inherited branch test claim is treated as a current result.
+9. **Documentation and release preparation** — explain licensing, AI coding-agent
+   self-audits, signed versus trusted evidence and actual validation, then regenerate
+   source references and run full checks. Status: pending phase 8.
