@@ -157,3 +157,15 @@ commits do not alter the tested implementation or frozen experiment artifacts.
 ## Final public-research publication checks
 
 Tested producer `81ff9f53a0baa9b40ff396283ef1dd9f430bf170` passed its [hosted workflow](https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40015138472). Both Linux and Windows jobs passed after the explicit import-classification fix; OpenVINO remains an optional local check. The follow-up changes in this section and PLAN.md are documentation only. No datasets, weights, accounts or generated research-image reports were published.
+
+## Publication and hosted verification — 24 October 2026
+
+Tested source [9391192](https://github.com/LilyC2024/AI-MedImg-Endo/commit/9391192d2f68cc7e50ba21a1085b21d1b3af2664) is published.
+[Hosted workflow 40099084727](https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40099084727)
+completed successfully. Linux/Windows CPU checks, exact generated API/heading
+validation, actual tiny artificial training/export and publication inventory all
+passed. LOVISA's producer/consumer workflow passed against this exact source pin.
+
+Final follow-up changes only phase/evaluation Markdown records; tested runtime,
+models, protocols and generated source references are unchanged. Local branch
+and publication trees are checked for equality before synchronization.

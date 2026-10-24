@@ -35,4 +35,6 @@ Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch r
    17 documents/anchors and generated API references checked; specialist audit
    corrected an overstated test-coverage phrase.
 7. **Joint release** — actual local inference/producer-consumer checks, evidence,
-   explicitly synchronized contracts and tested publication. Status: local validation passed; publication pending.
+   explicitly synchronized contracts and tested publication. Status: complete — 72 local tests, actual registered model/workspace/data
+   checks and receiver transfers passed. Source published as 9391192; hosted
+   40099084727 passed Linux/Windows. No new clinical/NPU validation claimed.
