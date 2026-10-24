@@ -1,5 +1,18 @@
 # Evaluation — image-first endoscopy research assistant
 
+## CI quality and security gates — 24 October 2026
+
+Tooling only; no source change.
+
+| Executed check (local, Python 3.12) | Actual outcome |
+| --- | --- |
+| `mypy` (2.4.0) on exchange, workspace, inference | Success: no issues in 3 files |
+| `mypy` on vendored `endo_contracts` (not gated) | 1 finding: `Bundle.schema_version` default typed `str` vs `Literal`; left for a synchronized contract change |
+| `pytest -q --cov` | **71 passed, 1 skipped**; coverage **74.64%** ≥ 70% floor |
+| `pip_audit --skip-editable --local` (after upgrading venv pip) | No known vulnerabilities found |
+
+Not run: gitleaks and CodeQL (hosted only), Windows runner, hosted CI.
+
 ## Expert source review — 24 October 2026
 
 The independent reviewer repaired provenance/ZIP association, frozen-source group/

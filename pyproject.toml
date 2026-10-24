@@ -27,3 +27,18 @@ pythonpath = ["src"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["endo", "endo_contracts"]
+
+[tool.mypy]
+# Typed gate on exchange export, workspaces and inference. The vendored
+# endo_contracts module is followed silently: changing it needs a synchronized
+# LOVISA contract update (one known Literal/str finding in Bundle.schema_version).
+files = ["src/endo/exchange.py", "src/endo/workspace.py", "src/endo/inference.py"]
+ignore_missing_imports = true
+follow_imports = "silent"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+# Measured 74.6% on 24 October 2026.
+fail_under = 70

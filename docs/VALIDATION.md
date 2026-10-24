@@ -13,7 +13,14 @@ Run from this checkout in its existing environment:
 .venv/bin/python -m pytest -q
 .venv/bin/python scripts/check_docs.py
 .venv/bin/python scripts/check_publication.py
+# CI gates (install: pip install mypy==2.4.0 pytest-cov==7.1.0 pip-audit==2.10.1)
+.venv/bin/python -m mypy                               # exchange, workspace, inference
+.venv/bin/python -m pytest -q --cov --cov-report=term  # fails below 70%
+.venv/bin/python -m pip_audit --skip-editable --local
 ```
+
+Hosted CI also runs gitleaks over full history and CodeQL, uploads a CycloneDX SBOM
+of the installed environment, and Dependabot proposes weekly updates.
 
 The suite uses artificial pixels, temporary outputs and scripted reviewer names.
 Some tests actually train/export a tiny artificial CPU model; that is real model

@@ -18,6 +18,10 @@ manifest. PyTorch loading uses `weights_only=True`; registration checks bind
 checkpoint, configuration, ONNX and numeric parity evidence. A malicious operator
 who rewrites every local hash is outside this unsigned workspace threat model.
 
+CI audits installed dependencies (pip-audit), scans history for secrets (gitleaks),
+runs CodeQL and publishes an SBOM. These are automated checks, not an independent
+security review.
+
 ## Enforced boundaries
 
 - Bounded single-image decoding; original bytes and canonical pixels stay distinct.
