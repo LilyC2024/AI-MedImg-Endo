@@ -1,49 +1,74 @@
-# Architecture and data structures
+# Endoscopy architecture and evidence flow
 
-[Overview](../README.md) · [Code reference](CODE_REFERENCE.md) · [LOVISA](LOVISA.md)
+[Overview](../README.md) · [Code reference](CODE_REFERENCE.md) · [LOVISA integration](LOVISA.md)
 
-## Separation of concerns
+![Three local projects and separate evidence/review responsibilities](images/lovisa-system.svg)
 
-| Layer | Responsibility |
+## Processing stages
+
+1. Decode one bounded JPG/PNG, retain original bytes, and create canonical RGB.
+2. Verify an installed model registration. Resize/normalize for U-Net, run the
+   explicitly selected local backend and restore probabilities to source size.
+3. Threshold the probability map and find 4-connected regions. Derive boxes,
+   pixel areas and scores from predictions, never from reference masks.
+4. Write a new workspace containing source, predictions and identity hashes.
+5. Reverify evidence before accepting a local research review or downloading.
+6. Export pending synthetic/public evidence for LOVISA's separate acceptance.
+
+```mermaid
+flowchart TB
+    Original[Original JPEG/PNG bytes] --> RGB[Canonical source RGB]
+    Registry[Installed checkpoint + ONNX + configuration hashes] --> Runtime[ONNX / explicit OpenVINO]
+    RGB --> Runtime
+    Runtime --> Probability[Source-resolution probability map]
+    Probability --> Regions[Mask + connected candidate regions]
+    RGB --> Workspace[Immutable workspace]
+    Regions --> Workspace
+    Provenance[Dataset / permission / subject declaration] --> Workspace
+    Workspace --> Verify[Recompute identity, regions, mask, overlay and ZIP]
+    Verify --> Review[Explicit local research review]
+    Verify --> Bundle[Pending LOVISA bundle]
+```
+
+## Data structures and coordinates
+
+| Structure | Meaning and invariant |
 | --- | --- |
-| `endo_contracts` | Strict ML-free studies, candidate regions, review decisions, ZIP/pixel validation and bounded worker lifecycle |
-| `endo.data` | Paired image/mask inventory, near-duplicate groups, immutable hashed split manifests |
-| `endo.model` / `train` | Compact U-Net and offline CPU optimisation with validation-only checkpoint selection |
-| `endo.deploy` / `inference` | Registered ONNX artifacts, explicit local backend, CPU/OpenVINO numerical checks |
-| `endo.evaluate` | Held-out overlap, box-region proxies, negative-image false alarms and timings |
-| `endo.workspace` / `exchange` | Original bytes, decoded sources, predictions and human review kept separate |
-| `endo.cli` / `app.py` | Explicit commands and source-first Streamlit interface |
-| LOVISA receiver | Patient-scoped storage, authenticated image acceptance, safety and clinical report approval |
+| `ModelInfo` | Checkpoint/recipe identity, backend, threshold, minimum region area and evaluation scope |
+| `Study` | Source RGB digest, source dimensions, input kind, aliases, unknown acquisition date and candidates |
+| `Candidate` | Half-open source-pixel `x0,y0,x1,y1` box, predicted mask area and mean model score |
+| `Review` | Exact study digest, reviewer attestation and one resolved decision per candidate |
+| `PublicResearchSource` | Dataset, HTTPS source, terms, original-byte hash, subject declaration and composite-case flag |
+| `Bundle` | Synthetic-v1 or public-research-v2 plus exact declared source/probability/mask/overlay artifacts |
 
-## Core structures
+Area fraction is predicted mask area divided by image area. It is not physical
+lesion size. Disconnected regions are not adjudicated distinct polyp identities.
+CT's HU, spacing, three-dimensional boxes and calipers are not reused here.
 
-`Study` binds source RGB pixel digest, width/height, input kind, unknown acquisition
-date, patient/study aliases and model provenance. Each `Candidate` stores an ID,
-half-open `(x0,y0,x1,y1)` box, predicted mask area in pixels and mean model score.
-Candidate regions are recomputed from the actual probability array; they are not
-invented by a language model or copied from dataset labels during inference.
+## Modules and trust boundaries
 
-`Review` refers to the exact study digest and contains one explicit decision per
-candidate. Uncertain blocks completion. `Bundle` admits only generated-synthetic
-input and exact artifacts. Original encoded research-image bytes are preserved in
-standalone workspaces with hashes; decoded RGB and predictions are separate.
-LOVISA archives original bundles and stores accepted snapshots/audit in SQLite.
+`endo.data` checks inventories/frozen groups; `train` uses validation-only model
+selection; `deploy` exports/registers numerical parity; `inference` verifies and
+runs the selected backend; `workspace` preserves and verifies evidence;
+`exchange` builds pending bundles; `cli` and `app.py` expose the operations.
+`endo_contracts` is ML-free and copied exactly into LOVISA.
 
-## Agents versus models
+New workspaces bind `research.json` and the exported ZIP in provenance. Verification
+also compares their typed study, source and predictions with the workspace, so a
+self-consistent unrelated ZIP is insufficient. Older workspaces without the new
+hash fields remain readable only after the same direct evidence checks.
+Changing model/backend/research permission cancels stale UI work and clears its
+old review controls. Workers cannot publish late results after cancellation.
 
-U-Net performs computer vision; ONNX/OpenVINO execute that model locally. The
-Endoscopy Agent is a bounded adapter in LOVISA that launches the companion. The
-LangGraph orchestrator coordinates four existing specialist classes/nodes, of
-which only clinical reasoning uses Ollama. Source extraction and safety remain
-Python. A composed imaging paragraph is a reviewed observation, not new LLM
-clinical reasoning. No image-model score becomes a diagnosis or medication order.
+## Agents, LLMs and review
 
-## Limits and trust
+The segmentation network is a CV model. LOVISA's `LocalEndoscopyJob` is a bounded
+subprocess adapter, sometimes described as the Endoscopy Agent; it is not an
+LLM persona or an autonomous tool user. LOVISA's four specialist roles remain
+history, medication, reasoning and deterministic safety. Only reasoning calls
+local Ollama. Images and image notes never enter that LLM or expand its catalog.
 
-The standalone application is a loopback research workbench. LOVISA remains a
-prototype with fictional histories and separate permitted public-image evidence. Archive hashes and reconstruction checks detect internal
-tampering but do not authenticate the machine that produced them. Local operating
-system/filesystem administrators are trusted. No model can approve its own output,
-modify clinical facts, lower Python safety escalation or approve a final report.
-
-Research-v2 preserves the same source/probability/annotation validation as synthetic-v1, adds public provenance, and requires a fictional composite alias. No additional LLM agent or model database access is introduced.
+Standalone review authenticates no professional identity. LOVISA supplies its own
+local-account receipt and final content binding. Neither hash consistency nor a
+review attestation proves permission, producer authenticity or clinical truth.
+[Security assumptions](../SECURITY.md).

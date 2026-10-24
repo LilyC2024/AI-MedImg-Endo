@@ -9,7 +9,8 @@ Hosted Windows Server CI now passes actual tiny artificial CPU training/export a
 
 ## Environment
 
-Linux/macOS: use the README commands. On Windows:
+Linux: use the root README commands. On macOS, select a PyTorch build available
+for that platform rather than the Linux/Windows CPU-wheel index. On Windows:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -49,3 +50,18 @@ Bind Streamlit to loopback. The standalone app is an unauthenticated local
 research tool, not a clinical records portal. LOVISA requires its own local login
 and separate review approvals. No automatic public hosting, cloud inference,
 telemetry service, model download or paid API is configured.
+
+## Models, inputs and recoverable errors
+
+The standalone UI prefers a registered `artifacts/kvasir-research-v2` directory
+when present, otherwise the earlier `artifacts/kvasir-model`. LOVISA uses its own
+matching discovery or `LOVISA_ENDO_MODEL_DIR`. A registration must agree with
+checkpoint/graph/config bytes, contain at least three actual parity probes, and
+have strict boolean/finite numerical evidence. Replacing a hash is not a repair;
+re-export/register the actual model.
+
+Public JPG/PNG input requires explicit research-use permission. A synthetic-only
+model cannot process public research images. Missing model/backend and worker
+startup errors stay visible; correct them and retry. Changing model/backend or
+permission cancels old work and clears stale results/review controls. Keep training
+and large experiments outside the interactive 110-second workflow.

@@ -1,35 +1,63 @@
 """Local installed-model inference; no network/download/fallback or untrusted pickle."""
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
-from endo_contracts import ModelInfo, digest, sha
+from endo_contracts import ModelInfo, digest, sha, unique
 
 
 def load_registration(directory):
     """Reject mismatched local weights, graph or configuration before inference."""
     directory = Path(directory)
-    info = json.loads((directory / "registration.json").read_text())
-    config = json.loads((directory / "config.json").read_text())
-    if info.get("schema_version") != "endo-model-v1" or info["config_sha256"] != digest(
-        config
+    info = json.loads(
+        (directory / "registration.json").read_text(), object_pairs_hook=unique
+    )
+    config = json.loads(
+        (directory / "config.json").read_text(), object_pairs_hook=unique
+    )
+    if (
+        not isinstance(info, dict)
+        or not isinstance(config, dict)
+        or info.get("schema_version") != "endo-model-v1"
+        or info.get("config_sha256") != digest(config)
     ):
         raise ValueError("Model registration/config mismatch")
     for file, key in (("model.pt", "checkpoint_sha256"), ("model.onnx", "onnx_sha256")):
         path = directory / file
         if path.is_symlink() or sha(path.read_bytes()) != info[key]:
             raise ValueError("Registered model artifact changed")
-    if not info.get("onnx_parity_passed"):
+    parity_error = info.get("max_logit_absolute_error")
+    if (
+        info.get("onnx_parity_passed") is not True
+        or type(info.get("parity_probe_count")) is not int
+        or info["parity_probe_count"] < 3
+        or type(parity_error) not in (int, float)
+        or not math.isfinite(parity_error)
+        or parity_error < 0
+    ):
         raise ValueError("ONNX parity validation required")
     if (
         config.get("model") != "UNetSmall"
-        or config.get("size") not in (64, 128, 256, 512)
-        or config.get("base") not in (4, 8, 16)
+        or type(config.get("size")) is not int
+        or config["size"] not in (64, 128, 256, 512)
+        or type(config.get("base")) is not int
+        or config["base"] not in (4, 8, 16)
     ):
         raise ValueError("Unsupported registered model configuration")
+    # Validate postprocessing before loading a runtime, not after its first prediction.
+    ModelInfo(
+        name="UNetSmall",
+        backend="onnx-cpu",
+        checkpoint_sha256=info["checkpoint_sha256"],
+        recipe_sha256=digest(config),
+        threshold=config.get("threshold"),
+        min_area_px=config.get("min_area_px"),
+        evaluation_scope=config.get("evaluation_scope"),
+    )
     return info, config
 
 

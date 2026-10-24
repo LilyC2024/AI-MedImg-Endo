@@ -13,6 +13,15 @@ from endo_contracts.worker import LocalJob
 ROOT = Path(__file__).resolve().parent
 
 
+def installed_model():
+    """Prefer the current registered research model, retaining older local installs."""
+    for name in ("kvasir-research-v2", "kvasir-model"):
+        directory = ROOT / "artifacts" / name
+        if (directory / "registration.json").is_file():
+            return str(directory)
+    return ""
+
+
 @st.fragment(run_every=1)
 def progress(job):
     if job.status() != "running":
@@ -62,20 +71,26 @@ def main():
         with st.expander("Local model settings"):
             model = st.text_input(
                 "Installed model directory",
-                value=str(ROOT / "artifacts/kvasir-model")
-                if (ROOT / "artifacts/kvasir-model/registration.json").is_file()
-                else "",
+                value=installed_model(),
                 help="Leave empty for the artificial non-ML fixture. Synthetic-only weights are not a clinical polyp detector.",
             )
             backend = st.selectbox(
                 "Local execution", ["onnx-cpu", "openvino-cpu", "openvino-npu"]
             )
-        source_token = mode + (sha(upload.getvalue()) if upload is not None else "")
+        source_token = digest(
+            {
+                "mode": mode,
+                "image_sha256": sha(upload.getvalue()) if upload is not None else None,
+                "model": str(Path(model).resolve()) if model else None,
+                "backend": backend,
+                "permission": permission,
+            }
+        )
         if st.session_state.get("source_token") != source_token:
             old = st.session_state.get("job")
             if old and old.status() == "running":
                 old.cancel()
-            for key in ("job", "workspace", "reviewed_summary"):
+            for key in ("job", "workspace", "reviewed_summary", "analysis_error"):
                 st.session_state.pop(key, None)
             st.session_state.source_token = source_token
         job = st.session_state.get("job")
@@ -112,10 +127,19 @@ def main():
                 command += ["--image", str(source), "--research-use-attested"]
             st.session_state.pop("workspace", None)
             st.session_state.pop("reviewed_summary", None)
-            st.session_state.job = LocalJob(
-                command, cwd=ROOT, directory=directory, output=output / "study.json"
-            )
+            st.session_state.pop("job", None)
+            st.session_state.pop("analysis_error", None)
+            try:
+                st.session_state.job = LocalJob(
+                    command, cwd=ROOT, directory=directory, output=output / "study.json"
+                )
+            except (ValueError, OSError) as error:
+                st.session_state.analysis_error = (
+                    f"Could not start local analysis: {error}"
+                )
             st.rerun()
+        if st.session_state.get("analysis_error"):
+            st.error(st.session_state.analysis_error)
         if job:
             if job.status() == "running":
                 progress(job)
@@ -198,7 +222,7 @@ def main():
                 )
             else:
                 st.caption(
-                    "Public research images remain in this standalone workspace; LOVISA accepts artificial studies only."
+                    "This public image stays in its standalone workspace. LOVISA also accepts permitted public research images when dataset, license and source-subject provenance are supplied for a fictional composite case; use the documented research export workflow."
                 )
         except (ValueError, OSError) as error:
             st.error(str(error))

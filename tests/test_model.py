@@ -85,3 +85,69 @@ def test_optional_openvino_cpu_parity_and_npu_absence(trained):
     if "NPU" not in ov.Core().available_devices:
         with pytest.raises(ValueError, match="unavailable"):
             Predictor(trained[2], backend="openvino-npu")
+
+
+@pytest.mark.parametrize("artifact", ["model.pt", "config.json"])
+def test_registration_rejects_changed_checkpoint_or_config(trained, tmp_path, artifact):
+    import shutil
+
+    from endo.inference import load_registration
+
+    model = tmp_path / "copy"
+    shutil.copytree(trained[2], model)
+    (model / artifact).write_bytes(b"{}" if artifact.endswith("json") else b"changed")
+    with pytest.raises(ValueError, match="changed|mismatch"):
+        load_registration(model)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"onnx_parity_passed": "false"},
+        {"onnx_parity_passed": 1},
+        {"parity_probe_count": 0},
+        {"max_logit_absolute_error": float("nan")},
+    ],
+)
+def test_registration_requires_explicit_finite_parity_evidence(
+    trained, tmp_path, change
+):
+    import json
+    import shutil
+
+    from endo.inference import load_registration
+
+    model = tmp_path / "copy"
+    shutil.copytree(trained[2], model)
+    file = model / "registration.json"
+    registration = json.loads(file.read_text())
+    registration.update(change)
+    file.write_text(json.dumps(registration))
+    with pytest.raises(ValueError, match="parity"):
+        load_registration(model)
+
+
+@pytest.mark.parametrize(
+    "change", [{"size": 64.0}, {"threshold": 1.1}, {"min_area_px": 0}]
+)
+def test_registered_invalid_postprocessing_fails_before_runtime_load(
+    trained, tmp_path, change
+):
+    import json
+    import shutil
+
+    from endo.inference import load_registration
+    from endo_contracts import digest
+
+    model = tmp_path / "copy"
+    shutil.copytree(trained[2], model)
+    config_file = model / "config.json"
+    config = json.loads(config_file.read_text())
+    config.update(change)
+    config_file.write_text(json.dumps(config))
+    registration_file = model / "registration.json"
+    registration = json.loads(registration_file.read_text())
+    registration["config_sha256"] = digest(config)
+    registration_file.write_text(json.dumps(registration))
+    with pytest.raises(ValueError):
+        load_registration(model)

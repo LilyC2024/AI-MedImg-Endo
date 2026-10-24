@@ -37,3 +37,16 @@ original bytes, reference masks and predictions separately.
 LOVISA's patient history is fictional. Its Kvasir subject is recorded as unknown
 with the public source image identifier; its CT comes from a different dataset
 subject. Research-v2 provenance never asserts that these are one real patient.
+
+## Reload and audit guarantees
+
+A frozen manifest is both hashed and rechecked against local source content.
+Canonical relative POSIX paths cannot escape through traversal or symlinks.
+Decoded RGB/dHash and mask-derived positive/foreground fractions are recomputed;
+related images cannot be separated by relabelling groups and rehashing the JSON.
+All train/validation/test partitions must remain present. The stronger checker
+verified the original 1,000-image frozen manifest without changing its identity.
+
+These are data-engineering consistency checks. Permission, completeness of labels,
+patient identity and external independence remain separate research responsibilities.
+The 2026-10-24 review added no source images, test-set tuning or model promotion.

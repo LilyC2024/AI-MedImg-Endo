@@ -29,7 +29,11 @@ To include reviewed negative research images, place them under `DATA/negatives/`
 and add `--negative-dir /absolute/path/DATA/negatives` to `split`. Their supplied
 negative status is an operator assumption, not a model finding. They receive empty
 masks. Confirm negatives in every evaluation partition; the split is grouped,
-not guaranteed class-stratified. Source files are rehashed before use.
+not guaranteed class-stratified. Source files are rehashed before use. Reload also checks canonical relative
+paths, exact decoded hashes/dHash, dimensions and actual mask-derived positive/
+foreground metadata. Related decoded content cannot cross declared groups or
+partitions even if someone recalculates the manifest hash after editing it.
+These checks do not establish patient independence.
 
 ## Reproduce the initial baseline
 
@@ -89,3 +93,25 @@ the previously examined test partition is exploratory, not an independent extern
 benchmark. Current repeat: Dice 0.544, IoU 0.413 on 168 positives, no negatives.
 [Full measured outcomes](../EVALUATION.md). Never tune on or advertise the three
 fixed display examples as an accuracy benchmark.
+
+## Artifact and parameter contract
+
+| Output | Purpose |
+| --- | --- |
+| `config.json` | Architecture, image size, base width, seed, training recipe, threshold and frozen-manifest identity |
+| `model.pt` | Validation-selected tensor state dictionary |
+| `training.json` | Epoch losses/timing, configuration and checkpoint hashes |
+| `model.onnx` | Fixed `[1,3,size,size]` input, binary logits; opset 18 |
+| `registration.json` | Graph/checkpoint/config identities and actual CPU parity evidence |
+| Evaluation JSON | Test manifest/model/backend identities, individual results and aggregate metrics |
+
+The Python training API additionally bounds batch size 1–32 and thread count 1–16.
+Source identity/group verification reads all referenced files; optimizer updates
+and checkpoint selection use only the training/validation partitions. RGB resizing
+is bilinear, mask resizing nearest-neighbor, and predictions are returned to source
+resolution for evaluation. Test data never choose thresholds/checkpoints.
+
+Hash/shape/parity registration checks are validated before runtime initialization.
+Ambiguous strings such as `"false"`, missing probes and nonfinite configuration
+values fail closed. Existing registered models are reused; this code review did
+not retrain a model or change its recorded research results.

@@ -24,3 +24,15 @@ repeat, preserve frozen groups and state that the previously viewed test set is
 not an independent prospective validation.
 
 Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch real-image CPU training and 168-image evaluation. Hosted checks passed: https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40015138472. Compatible LOVISA receiver is published; final receiver checks follow.
+
+## Systematic three-project review — 24 October 2026
+
+5. **Review/repair** — expert source audit, reproduced defects, focused regressions
+   and full suite before documentation changes. Status: passed — 72 tests in 9.39s,
+   actual historical workspace/model/split checks and focused Ruff passed.
+6. **Documentation** — concise root README and detailed linked architecture/data/
+   training/operation/API/security guides, aligned with LOVISA. Status: passed —
+   17 documents/anchors and generated API references checked; specialist audit
+   corrected an overstated test-coverage phrase.
+7. **Joint release** — actual local inference/producer-consumer checks, evidence,
+   explicitly synchronized contracts and tested publication. Status: local validation passed; publication pending.

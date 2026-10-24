@@ -13,7 +13,7 @@
 | `src/endo/deploy.py` | `export`: weights-only loading, fixed-shape ONNX export and numerical parity registration |
 | `src/endo/inference.py` | `load_registration`, `Predictor`: hash checks and explicit ONNX/OpenVINO runtime |
 | `src/endo/evaluate.py` | `iou`, `score`, `evaluate`: source-resolution test metrics and latency evidence |
-| `src/endo/exchange.py` | `make_study`, `export_bundle`: derive typed observations and pending synthetic exchange |
+| `src/endo/exchange.py` | `make_study`, `export_bundle`: derive typed observations and pending synthetic/public exchange |
 | `src/endo/workspace.py` | `create`, `verify`, `reviewed_report`: separate original bytes, derived artifacts and explicit research review |
 | `src/endo/cli.py` | `main`: split, synthetic-data, train, export-model, evaluate, infer, demo and bridge commands |
 | `app.py` | Source/overlay viewer, bounded local analysis and explicit region review |
@@ -34,3 +34,26 @@ public predictions; `workspace.create(research=...)` checks original byte hashes
 and preserves source/probability/provenance. `cli infer --research-provenance`
 exposes this path. Shared `worker.LocalJob(input_files=...)` stages only bounded
 basename inputs before launching the local process. No review is generated.
+
+## Public API and subfunction navigation
+
+[Callable inventory](reference/CALLABLES.md) lists exact source signatures and
+nested helpers with code-line links. Use the contracts below when extending code:
+
+| API | Input → output; failure behavior |
+| --- | --- |
+| `data.freeze` | Image/mask inventory → new hashed grouped split; existing output is not overwritten |
+| `data.load_manifest` | Manifest/root → rehashed decoded sources and target metadata; traversal/group leakage/contradiction fails |
+| `train.train` | Verified split/config → CPU model/training evidence; validation loss selects checkpoint |
+| `deploy.export` | Actual trained artifacts → ONNX/registration after three numerical probes |
+| `inference.load_registration` | Local model directory → verified hashes/strict parity/config; invalid metadata fails before model runtime |
+| `Predictor.predict` | Source RGB → source-resolution probabilities and typed model evidence; explicit selected backend |
+| `exchange.make_study` | RGB/probabilities/model → derived regions and typed study |
+| `workspace.create` | Exact original bytes/decoded source/provenance → immutable workspace; mismatches fail before creation |
+| `workspace.verify` | Workspace → checked study only after source/region/mask/overlay/provenance/ZIP agreement |
+| `workspace.reviewed_report` | Verified workspace and exact resolved review → short research summary |
+| `LocalJob` | Fixed subprocess and staged basename inputs → bounded lifecycle; cancellation prevents late publication |
+
+Keep type/coordinate semantics in the shared contracts and all ML imports outside
+that package. UI state invalidation is a presentation/lifecycle concern; it cannot
+change model evidence or issue LOVISA acceptance. [Detailed repairs](REVIEW.md).

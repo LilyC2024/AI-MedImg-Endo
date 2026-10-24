@@ -1,5 +1,40 @@
 # Evaluation — image-first endoscopy research assistant
 
+## Expert source review — 24 October 2026
+
+The independent reviewer repaired provenance/ZIP association, frozen-source group/
+target validation, ambiguous model-registration evidence and stale model/backend/
+permission UI state. Shared wire contracts, dependencies, installed models and
+research datasets were unchanged. [Defects and repairs](docs/REVIEW.md).
+
+| Executed check | Actual outcome |
+| --- | --- |
+| Final full regression | **72 passed in 5.76s**, including 31 new runtime and four documentation regressions |
+| Source-repair phase | 72 passed in 9.39s before documentation changes; applicable Ruff passed |
+| Historical workspace compatibility | Artificial fixture and all three existing public kit workspaces verified unchanged, with 1 / 5 / 2 / 2 candidates |
+| Actual original frozen-manifest reload | All 1,000 images verified in **14.732s**; same manifest identity/group split retained |
+| Actual registered model, endoscopy-03 source | ONNX CPU **0.085s**, OpenVINO CPU **0.389s** for predictor setup/prediction; not full-workflow latency |
+| Runtime OpenVINO CPU parity | Three actual probes; maximum absolute logit error **9.36×10⁻⁶** |
+| LOVISA actual installed artificial producer/receiver | **0.91s**, one region, four artifacts, review pending |
+| LOVISA real upload workflow | Endoscopy ZIP **0.51s** to results; actual raw JPG inference **2.74s**, two regions, no acceptance issued |
+| Supporting checks | 17 maintained Markdown files/anchors, generated API freshness, compilation, pip consistency, applicable Ruff and publication inventory passed |
+
+Two warnings are existing TorchScript ONNX-export deprecations. Automated tests
+use artificial sources/scripted reviews; some genuinely train/export a tiny
+artificial model and are labelled accordingly. Actual public-workspace and
+registered-model checks above are separate and issue no clinician approval.
+
+Original bytes, canonical pixels, provenance and exported ZIP must agree; older
+workspaces without new hash fields undergo the same direct evidence comparison.
+Unsigned local hashes still prove consistency, not authenticity or permission.
+The existing 24-epoch Kvasir results below were not retrained or newly validated.
+Patient independence, negative-examination performance and clinical validity remain
+unproven. NPU hardware was unavailable and is not marked tested.
+
+Root documentation is concise; linked guides explain schemas, functions, data,
+training, deployment, review and LOVISA. The editable system sketch contains no
+research image pixels. Publication/hosted outcomes are recorded after execution below.
+
 ## Public research-image extension — 23 October 2026
 
 - Final local regression: **37 passed in 5.15s**, with two existing ONNX-export deprecation warnings.

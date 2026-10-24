@@ -1,10 +1,25 @@
 """Immutable source/prediction workspaces and explicit separate research review."""
 
+import io
 import json
 from pathlib import Path
 
+import numpy as np
+from PIL import Image
+
 from endo.exchange import export_bundle, make_study
-from endo_contracts import LIMITATION, Review, digest, overlay_pixels, png, sha
+from endo_contracts import (
+    LIMITATION,
+    PublicResearchSource,
+    Review,
+    Study,
+    _probability,
+    digest,
+    overlay_pixels,
+    png,
+    read_exchange,
+    sha,
+)
 
 
 def create(
@@ -28,21 +43,34 @@ def create(
         study_id=study_id,
         input_kind=input_kind,
     )
+    canonical_source = png(source)
+    original = original_bytes if original_bytes is not None else canonical_source
+    # Reject inconsistent sources/provenance before creating a partial workspace.
+    with Image.open(io.BytesIO(original)) as image:
+        if (
+            image.format not in ("PNG", "JPEG")
+            or image.size != (study.width, study.height)
+            or getattr(image, "n_frames", 1) != 1
+            or not np.array_equal(np.array(image.convert("RGB")), source)
+        ):
+            raise ValueError("Original file does not match decoded source")
+    if research is not None:
+        research = PublicResearchSource.model_validate(research)
+        if research.original_sha256 != sha(original):
+            raise ValueError("Research provenance does not match original image bytes")
+    bundle = (
+        export_bundle(study, source, p, research=research)
+        if input_kind == "generated-synthetic" or research is not None
+        else None
+    )
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
     (output / "study.json").write_text(study.model_dump_json(indent=2))
-    import numpy as np
-
     np.save(output / "probability.npy", p, allow_pickle=False)
-    (output / "source.png").write_bytes(png(source))
+    (output / "source.png").write_bytes(canonical_source)
     (output / "mask.png").write_bytes(png(mask))
     (output / "overlay.png").write_bytes(
         png(overlay_pixels(source, mask, study.candidates))
-    )
-    original = (
-        original_bytes
-        if original_bytes is not None
-        else (output / "source.png").read_bytes()
     )
     (output / "source.original").write_bytes(original)
     provenance = {
@@ -60,28 +88,19 @@ def create(
             )
         },
     }
+    # Explicit null distinguishes a standalone public workspace from a lost sidecar.
+    provenance["research_sha256"] = digest(research) if research is not None else None
+    provenance["bundle_sha256"] = sha(bundle) if bundle is not None else None
     (output / "provenance.json").write_text(json.dumps(provenance, indent=2))
     if research is not None:
-        from endo_contracts import PublicResearchSource
-
-        research = PublicResearchSource.model_validate(research)
-        if research.original_sha256 != sha(original):
-            raise ValueError("Research provenance does not match original image bytes")
         (output / "research.json").write_text(research.model_dump_json(indent=2))
-    if input_kind == "generated-synthetic" or research is not None:
-        (output / "bundle.endo.zip").write_bytes(
-            export_bundle(study, source, p, research=research)
-        )
+    if bundle is not None:
+        (output / "bundle.endo.zip").write_bytes(bundle)
     return study
 
 
 def verify(output):
     """Recheck original-source association and every derived workspace annotation."""
-    import numpy as np
-    from PIL import Image
-
-    from endo_contracts import Study
-
     output = Path(output)
     study = Study.model_validate_json((output / "study.json").read_text())
     provenance = json.loads((output / "provenance.json").read_text())
@@ -120,8 +139,6 @@ def verify(output):
     with Image.open(output / "source.original") as original:
         if not np.array_equal(np.array(original.convert("RGB")), source):
             raise ValueError("Original file does not match decoded source")
-    from endo_contracts import _probability
-
     p = _probability(
         (output / "probability.npy").read_bytes(), (study.height, study.width)
     )
@@ -140,6 +157,41 @@ def verify(output):
         != png(overlay_pixels(source, mask, study.candidates))
     ):
         raise ValueError("Derived annotations changed")
+    research_path = output / "research.json"
+    research = None
+    if research_path.exists():
+        if research_path.is_symlink():
+            raise ValueError("Research provenance must be a regular local file")
+        research = PublicResearchSource.model_validate_json(research_path.read_text())
+        if (
+            study.input_kind != "approved-public-research"
+            or research.original_sha256 != provenance["original_file_sha256"]
+        ):
+            raise ValueError("Research provenance does not match original image")
+    if "research_sha256" in provenance and provenance["research_sha256"] != (
+        digest(research) if research is not None else None
+    ):
+        raise ValueError("Research provenance changed or is missing")
+    bundle_path = output / "bundle.endo.zip"
+    requires_bundle = study.input_kind == "generated-synthetic" or research is not None
+    if requires_bundle or bundle_path.exists() or provenance.get("bundle_sha256"):
+        if bundle_path.is_symlink() or not bundle_path.is_file():
+            raise ValueError("Exported bundle changed or is missing")
+        payload = bundle_path.read_bytes()
+        if "bundle_sha256" in provenance and provenance["bundle_sha256"] != sha(
+            payload
+        ):
+            raise ValueError("Exported bundle changed")
+        bundle, _, artifacts = read_exchange(payload, study.patient_alias)
+        if (
+            bundle.study != study
+            or bundle.research != research
+            or any(
+                artifacts[a.path] != (output / a.path).read_bytes()
+                for a in bundle.artifacts
+            )
+        ):
+            raise ValueError("Exported bundle does not match workspace evidence")
     return study
 
 

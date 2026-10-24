@@ -1,57 +1,37 @@
-# LOVISA Endoscopy — Image-first polyp research assistant
+# LOVISA Endoscopy
 
-A locally deployed application that proposes candidate polyp regions in a single
-colonoscopy image, shows source-linked annotations and pixel-area measurements,
-and requires human review. It connects to
-[LOVISA](https://github.com/LilyC2024/Medical-AI) alongside the lung-nodule CT
-companion. It does not diagnose cancer or establish a normal examination.
+**Local image-first polyp candidate research assistant.** A single permitted
+colonoscopy image becomes a source-linked candidate overlay and a short,
+human-reviewed research summary. This companion supplies image evidence to
+[LOVISA](https://github.com/LilyC2024/Medical-AI), alongside the
+[lung CT assistant](https://github.com/LilyC2024/ai-medimg-2.5D-CT).
+
+## How it works
 
 ```mermaid
 flowchart LR
-    I[Permitted research image / artificial example] --> M[Local U-Net or non-ML fixture]
-    M --> P[Source + predicted mask + candidate outline]
-    P --> H[Explicit human image review]
-    H --> R[Standalone research summary]
-    P -->|Synthetic / labelled public research| L[LOVISA image acceptance]
+    I[Research JPG/PNG or artificial image] --> M[Local U-Net / explicit fixture]
+    M --> P[Probability map → candidate regions]
+    P --> V[Source + mask + annotation review]
+    V --> R[Standalone research summary]
+    P --> B[Verified pending evidence ZIP]
+    B --> L[LOVISA image acceptance]
     L --> C[History + CT + endoscopy draft]
-    C --> A[Separate clinician approval]
+    C --> H[Separate clinician approval]
 ```
 
-## What works
+ONNX Runtime runs the model on CPU; optional OpenVINO devices are selected
+explicitly and checked numerically. Region areas are **pixels**, not millimetres.
+The companion has no LLM. LOVISA's language model reasons over fictional history;
+accepted image observations are added in Python, without sending images to it.
 
-- Dataset validation, related-image grouping and immutable train/validation/test manifests.
-- Compact U-Net CPU training, held-out evaluation, ONNX export and actual CPU parity checks.
-- ONNX Runtime CPU inference; optional OpenVINO CPU/NPU with explicit device selection and numerical checks.
-- A local Streamlit image viewer with candidate decisions and separate research-review export.
-- Separate bounded synthetic/public-research exchanges into LOVISA: candidate inspection, authenticated acceptance and combined reports with pictures.
+## Start locally
 
-The 24-epoch **exploratory Kvasir-SEG repeat** achieved mean Dice **0.544**
-(IoU 0.413) on the frozen 168-positive-image test split; the earlier 12-epoch
-baseline was 0.446. The checkpoint was selected by validation loss, but this
-test split had already been examined, so the repeat is not independent validation. It has no real negative-examination evaluation and
-patient independence is not established. These results are insufficient for
-clinical deployment. Artificial-image tests measure software behavior only.
-[Actual results and limitations](EVALUATION.md).
-
-## Real-image LOVISA demonstration
-
-The Jordan research-composite case can include a real CT excerpt and unrelated
-Kvasir endoscopy image. Public endoscopy evidence uses `lovisa-endo-research-v2`,
-with dataset/license/image provenance and `synthetic: false`; artificial-v1 stays
-supported. Images remain separate from fictional medical history. No image
-result diagnoses cancer or enters the LLM. [Export and UI workflow](docs/LOVISA.md).
-
-LOVISA has shorter result summaries, optional notes, green selected confirmations
-and yellow/green decision choices. Each inclusion or final approval still needs
-explicit submission. Three actual research JPGs and their prepared predictions
-can be generated locally with the [LOVISA research-kit script](https://github.com/LilyC2024/Medical-AI/blob/main/docs/RESEARCH_IMAGES.md).
-
-## Run locally
-
-Use Python 3.12 for the validated ML environment. Reuse an existing `.venv`.
-For a fresh checkout:
+Use Python 3.12 for the tested ML setup. Reuse an existing `.venv`; for a new clone:
 
 ```bash
+git clone https://github.com/LilyC2024/AI-MedImg-Endo.git
+cd AI-MedImg-Endo
 python3.12 -m venv .venv
 .venv/bin/python -m pip install torch==2.14.1+cpu --index-url https://download.pytorch.org/whl/cpu
 .venv/bin/python -m pip install -e '.[ml,ui,dev]'
@@ -59,25 +39,36 @@ python3.12 -m venv .venv
 .venv/bin/python -m streamlit run app.py --server.address=127.0.0.1 --server.port=8503
 ```
 
-The non-ML artificial example needs no weights. Installed-model mode requires
-explicit training and registration; inference never downloads weights or calls a
-cloud service. Windows commands and optional NPU setup are in [Setup](docs/SETUP.md).
+The artificial fixture needs no weights. Real-image inference requires an
+explicitly trained/exported local model. Setup may download packages; inference
+never downloads models or calls a cloud service.
+[Windows, environment and acceleration setup](docs/SETUP.md).
 
-## Documentation
+## Use with LOVISA
 
-| Guide | Purpose |
+Open **Endoscopy review → Upload → Analyze** in LOVISA. A review ZIP opens its
+included results; an approved research-kit JPG/PNG runs the installed polyp model.
+Inspect every candidate and explicitly include or exclude it before image
+acceptance. Safety assessment and final clinical approval remain separate.
+Public images belong only to labelled fictional composite cases, with dataset,
+permission and subject provenance. [Exact integration workflow](docs/LOVISA.md).
+
+## Understand the implementation
+
+| Guide | Contents |
 | --- | --- |
-| [Quick workflow](docs/WORKFLOWS.md) | Run, inspect, review and export an image study |
-| [Training and evaluation](docs/TRAINING.md) | Data acquisition, frozen splits, training, export and benchmark commands |
-| [LOVISA integration](docs/LOVISA.md) | Separate environments, synthetic/public evidence, composite binding and reports |
-| [Architecture and agents](docs/ARCHITECTURE.md) | Data structures, model versus Agent versus LLM responsibilities |
-| [Code reference](docs/CODE_REFERENCE.md) | Folder/module/function responsibilities |
-| [Data card](docs/data_card.md) | Source terms, dataset validation and known gaps |
-| [Evaluation](EVALUATION.md) | Executed tests, real inference, timings and untested hardware |
-| [Implementation plan](PLAN.md) | Tested phase gates |
+| [Documentation index](docs/README.md) | Operation, architecture, data and development routes |
+| [Image workflow](docs/WORKFLOWS.md) | Input, annotations, review, errors and outputs |
+| [Training](docs/TRAINING.md) / [Data card](docs/data_card.md) | Frozen groups, preprocessing, evaluation and reproducibility |
+| [Architecture](docs/ARCHITECTURE.md) / [Code reference](docs/CODE_REFERENCE.md) | Schemas, folders, functions and runtime responsibilities |
+| [Validation](docs/VALIDATION.md) / [Evaluation](EVALUATION.md) | Reproduce tests; separate actual inference from scripted checks |
+| [Expert review](docs/REVIEW.md) | Reproduced bugs, repairs and remaining risks |
 
-Models, datasets, credentials and generated workspaces stay out of Git. Research
-data are not synthetic patient records. Code publication grants no dataset or
-third-party model rights. Kvasir-SEG use is research/education only unless its
-publisher grants commercial permission. This repository has no selected
-project-wide redistribution license. [Security and scope](SECURITY.md).
+**Research and education only.** This exploratory segmentation model does not
+establish cancer, histology, anatomical location or a normal examination. The
+Kvasir evaluation has no negative examinations and does not establish patient
+independence. No clinical or NPU deployment claim follows from passing tests.
+
+Keep images, weights, workspaces and credentials outside Git. Dataset permission
+is separate from code publication; no project-wide redistribution license has
+been selected. [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md).

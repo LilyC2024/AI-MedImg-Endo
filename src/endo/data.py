@@ -1,6 +1,7 @@
 """Research-only dataset inventory and immutable, related-image-grouped split manifests."""
 
 import json
+import math
 import random
 from pathlib import Path
 
@@ -143,15 +144,49 @@ def freeze(root, output, *, negatives=None, seed=42, near_distance=4):
 def load_manifest(path, root):
     """Recheck manifest identity, group separation and every referenced source."""
     body = json.loads(Path(path).read_text())
-    expected = body.pop("manifest_sha256")
+    if not isinstance(body, dict):
+        raise ValueError("Split manifest must be a JSON object")
+    expected = body.pop("manifest_sha256", None)
     if digest(body) != expected or body.get("schema_version") != "endo-split-v1":
         raise ValueError("Split manifest changed/unsupported")
     root = Path(root).resolve()
-    rows = body["records"]
+    rows = body.get("records")
+    near_distance = body.get("near_distance")
+    if (
+        not isinstance(rows, list)
+        or not rows
+        or type(near_distance) is not int
+        or not 0 <= near_distance <= 16
+    ):
+        raise ValueError("Invalid split manifest records/near-duplicate threshold")
+    required = {
+        "image",
+        "mask",
+        "image_sha256",
+        "mask_sha256",
+        "decoded_sha256",
+        "dhash",
+        "positive",
+        "foreground_fraction",
+        "group",
+        "split",
+    }
+    if any(not isinstance(r, dict) or set(r) != required for r in rows):
+        raise ValueError("Invalid split manifest record fields")
     if len({r["image"] for r in rows}) != len(rows):
         raise ValueError("Duplicate manifest image")
     groups = {}
+    decoded = []
     for row in rows:
+        if (
+            not isinstance(row["group"], str)
+            or not row["group"]
+            or type(row["positive"]) is not bool
+            or type(row["foreground_fraction"]) not in (int, float)
+            or not math.isfinite(row["foreground_fraction"])
+            or not 0 <= row["foreground_fraction"] <= 1
+        ):
+            raise ValueError("Invalid image group/target metadata")
         if row["split"] not in ("train", "validation", "test"):
             raise ValueError("Unknown split")
         if row["group"] in groups and groups[row["group"]] != row["split"]:
@@ -162,15 +197,53 @@ def load_manifest(path, root):
                 if key == "image" or row["positive"]:
                     raise ValueError("Missing required source")
                 continue
-            if "\\" in row[key] or Path(row[key]).is_absolute():
+            if (
+                not isinstance(row[key], str)
+                or "\\" in row[key]
+                or ":" in row[key]
+                or Path(row[key]).is_absolute()
+                or any(p in ("", ".", "..") for p in row[key].split("/"))
+            ):
                 raise ValueError("Dataset manifest paths must be relative POSIX paths")
             file = root / row[key]
             if (
                 file.is_symlink()
+                or not file.is_file()
                 or not file.resolve().is_relative_to(root)
                 or sha(file.read_bytes()) != row[key + "_sha256"]
             ):
                 raise ValueError("Dataset source changed or escapes root")
+        with Image.open(root / row["image"]) as image:
+            rgb = np.array(image.convert("RGB"))
+        image_digest = sha(rgb.tobytes())
+        image_hash = fingerprint(rgb)
+        if (
+            row["decoded_sha256"] != image_digest
+            or row["dhash"] != f"{image_hash:016x}"
+        ):
+            raise ValueError("Decoded image identity/fingerprint changed")
+        if row["mask"] is None:
+            positive, fraction = False, 0.0
+            if row["mask_sha256"] is not None:
+                raise ValueError("Negative image has conflicting mask metadata")
+        else:
+            with Image.open(root / row["mask"]) as image:
+                target = np.array(image.convert("L")) >= 128
+            if target.shape != rgb.shape[:2]:
+                raise ValueError("Image/mask dimensions differ")
+            positive, fraction = bool(target.any()), float(target.mean())
+        if row["positive"] != positive or row["foreground_fraction"] != fraction:
+            raise ValueError("Target metadata does not match source mask")
+        for other_digest, other_hash, other_group, other_split in decoded:
+            related = (
+                image_digest == other_digest
+                or (image_hash ^ other_hash).bit_count() <= near_distance
+            )
+            if related and (row["group"], row["split"]) != (other_group, other_split):
+                raise ValueError("Related-image content crosses groups or splits")
+        decoded.append((image_digest, image_hash, row["group"], row["split"]))
+    if {row["split"] for row in rows} != {"train", "validation", "test"}:
+        raise ValueError("All three splits are required")
     body["manifest_sha256"] = expected
     return body
 

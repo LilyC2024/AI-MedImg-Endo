@@ -22,7 +22,7 @@ fixture, never a fallback for failed inference. Use a fresh study/output each ru
 
 LOVISA discovers the sibling `AI-MedImg-Endo/.venv`. Otherwise configure
 `LOVISA_ENDO_ROOT`, `LOVISA_ENDO_MODEL_DIR` and `LOVISA_ENDO_BACKEND` outside the
-review UI. Choose Endoscopy review, inspect candidates, resolve all decisions,
+review UI. Choose **Endoscopy review → Upload → Analyze**, then inspect candidates and resolve all decisions,
 optionally add a note, retain the selected inspection confirmation, then explicitly include the study. Complete safety and final
 clinical review separately. [Receiver guide](https://github.com/LilyC2024/Medical-AI/blob/main/docs/ENDOSCOPY.md).
 
@@ -79,3 +79,24 @@ can be blank; candidate uncertainty still blocks inclusion. Clinical/safety/fina
 review rules remain independent of imaging. [Prepare files and terms](https://github.com/LilyC2024/Medical-AI/blob/main/docs/RESEARCH_IMAGES.md).
 
 Research-v2 allows a bounded 64-MiB archive/expanded size and up to 16 MiB plus NPY header per artifact, supporting real large-image probability maps. Synthetic-v1 retains its original 16-MiB total and 4-MiB artifact limits.
+
+## Receiver workflow and compatibility table
+
+| Input | Analyze behavior | Required review |
+| --- | --- | --- |
+| Synthetic-v1 review ZIP | Independently validate included source and predictions | Every region, then authenticated image inclusion |
+| Public-research-v2 ZIP | Validate public provenance and exact source-derived annotations in a fictional composite | Same image inclusion; no producer approval substitutes |
+| One of LOVISA's exact prepared research JPG/PNG files | Run installed local model on those bytes; preserve dataset provenance | Inspect new regions and explicitly include |
+| Arbitrary unprovenanced real image | Rejected by LOVISA; prepare a permitted standalone research workspace with provenance | No automatic relabelling |
+
+ZIP analysis opens existing results, not fresh inference. Model/example selection
+applies only without an upload. Uploads take precedence over generated examples.
+Adding valid imaging after a clinical case starts releases the old active context;
+new image inclusion and safety review precede another draft. Saved reports remain
+unchanged. Invalid uploads keep the old context and show the actual bounded error.
+
+Workspace verification now checks the exported ZIP against the same typed study,
+provenance and source/mask/probability/overlay bytes. Old workspaces without the
+additional provenance/ZIP hash fields still require these direct comparisons.
+Exact shared-schema sync remains mandatory; no wire-format migration occurred in
+the expert review. [Verification](VALIDATION.md) · [Repairs](REVIEW.md).
