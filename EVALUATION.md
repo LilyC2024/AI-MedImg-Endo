@@ -1,5 +1,21 @@
 # Evaluation — image-first endoscopy research assistant
 
+## Producer signatures — 24 October 2026
+
+Software change: optional Ed25519 signatures and model-bound performance claims.
+No model, threshold, region extraction or split changed; no model was retrained.
+
+| Executed check | Actual outcome |
+| --- | --- |
+| `python -m pytest -q` (Python 3.12, CPU torch from PyPI) | **74 passed, 1 skipped** (OpenVINO not installed); 71 before + 3 new |
+| New `tests/test_producer_signature.py` | 3 passed: verified model-bound rate, other-model evaluation rejected, unsigned/stripped/unlisted entries |
+| Actual CLI: `keygen`, then `demo` with `LOVISA_SIGNING_KEY_FILE` | Signed 6-entry `bundle.endo.zip` produced and re-validated (key in a temporary scratch directory, not committed) |
+| CI ruff (`--select F,I`) / `pip check` | All checks passed / No broken requirements found |
+| Docs/API/publication checks | Passed; API reference regenerated |
+
+Not run: hosted CI, Windows, an installed Kvasir model with `evaluation.json`
+(no weights in this container), OpenVINO.
+
 ## Expert source review — 24 October 2026
 
 The independent reviewer repaired provenance/ZIP association, frozen-source group/

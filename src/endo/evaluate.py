@@ -9,7 +9,7 @@ from PIL import Image
 
 from endo.data import load_manifest
 from endo.inference import Predictor
-from endo_contracts import regions
+from endo_contracts import regions, sha
 
 
 def iou(a, b):
@@ -128,3 +128,37 @@ def evaluate(directory, root, manifest, output, *, backend="onnx-cpu"):
     with Path(output).open("x") as handle:
         json.dump(report, handle, indent=2)
     return report
+
+
+def declared_performance(registration, evaluation_path):
+    """Signed false-positive claim for the exact registered ONNX model, if evaluated.
+
+    The rate is 1 - box-region precision proxy on the frozen test partition. An
+    evaluation of a different model is rejected rather than silently reused.
+    """
+    from endo_contracts.producer_signature import NOT_MEASURED, Performance
+
+    if evaluation_path is None:
+        return NOT_MEASURED
+    raw = Path(evaluation_path).read_bytes()
+    report = json.loads(raw)
+    if report.get("schema_version") != "endo-evaluation-v1":
+        raise ValueError("Unsupported evaluation report")
+    if report.get("model_onnx_sha256") != registration["onnx_sha256"]:
+        raise ValueError("Evaluation report belongs to a different model")
+    precision = report.get("box_region_precision_proxy")
+    if precision is None:
+        return NOT_MEASURED
+    notes = [f"{report['partition']} partition"]
+    if not report.get("negative_images"):
+        notes.append("no negative images, so false alarms on normal exams are unknown")
+    notes.append("patient independence " + str(report.get("patient_independence")))
+    return Performance(
+        measured=True,
+        metric="1 - box-region precision proxy (share of candidate regions not matching a reference region)",
+        false_positive_fraction=1 - precision,
+        test_images=report["images"],
+        negative_images=report["negative_images"],
+        evaluation_sha256=sha(raw),
+        limitations="Exploratory: " + "; ".join(notes) + ".",
+    )

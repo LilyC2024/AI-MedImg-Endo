@@ -49,8 +49,21 @@ def make_study(source, probability, model, *, patient_alias, study_id, input_kin
     return study, mask
 
 
-def export_bundle(study, source, probability, *, job_id=None, research=None):
-    """Export only synthetic pending evidence, then validate the complete archive."""
+def export_bundle(
+    study,
+    source,
+    probability,
+    *,
+    job_id=None,
+    research=None,
+    signing_key=None,
+    performance=None,
+):
+    """Export only synthetic pending evidence, then validate the complete archive.
+
+    With ``signing_key`` (an Ed25519 key file) the archive carries a producer
+    signature whose claims include ``performance`` (default: not measured).
+    """
     mask, candidates = regions(
         probability, study.model.threshold, study.model.min_area_px
     )
@@ -87,5 +100,18 @@ def export_bundle(study, source, probability, *, job_id=None, research=None):
         for path, (_, data) in artifacts.items():
             archive.writestr(path, data)
     payload = stream.getvalue()
+    if signing_key is not None:
+        from endo_contracts.producer_signature import (
+            NOT_MEASURED,
+            load_private_key,
+            sign_archive,
+        )
+
+        payload = sign_archive(
+            payload,
+            load_private_key(signing_key),
+            "lovisa-endo",
+            performance or NOT_MEASURED,
+        )
     read_exchange(payload, study.patient_alias)
     return payload

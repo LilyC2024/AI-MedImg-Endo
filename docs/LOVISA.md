@@ -45,6 +45,27 @@ immutable. Final report approval covers both CT and endoscopy content; changing
 a source, review or image invalidates export. Hashes prove consistency, not
 independent synthetic origin, producer authenticity or diagnostic truth.
 
+## Producer signatures and false-positive claims
+
+Anyone can build a ZIP with fabricated candidates and valid hashes. Create a
+signing key once, outside Git, and pin the printed public key in LOVISA:
+
+```bash
+.venv/bin/python -m endo.cli keygen --output ~/.config/lovisa/endo-signing.key
+export LOVISA_SIGNING_KEY_FILE=~/.config/lovisa/endo-signing.key
+```
+
+`demo`, `infer` and `bridge` then add `signature.json`, signing `bundle.json`'s
+SHA-256, the producer and a performance claim. With `--evaluation` (or an
+`evaluation.json` in the model directory) the claim carries the measured share of
+candidate regions that matched no reference region (1 − box-region precision
+proxy) for **that exact ONNX model**; an evaluation of another model is rejected.
+Without one the claim says "not measured". LOVISA shows the verified figure beside
+every candidate. Current Kvasir evidence is positive-only and exploratory, so false
+alarms on normal examinations remain unknown. The module
+[`producer_signature.py`](../src/endo_contracts/producer_signature.py) is shared
+byte-for-byte with CT and LOVISA.
+
 ## Agent and LLM responsibilities
 
 The Endoscopy Agent is LOVISA's explicit `LocalEndoscopyJob` CV adapter, launched

@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 from uuid import uuid4
 
@@ -48,9 +49,22 @@ def main():
         default="onnx-cpu",
         choices=["onnx-cpu", "openvino-cpu", "openvino-npu"],
     )
+    keygen = sub.add_parser(
+        "keygen", help="Create an Ed25519 signing key for review ZIPs; prints public key"
+    )
+    keygen.add_argument("--output", required=True, help="New private key file (0600)")
     for name in ("demo", "infer", "bridge"):
         item = sub.add_parser(name)
         item.add_argument("--output", required=True)
+        item.add_argument(
+            "--signing-key",
+            default=os.environ.get("LOVISA_SIGNING_KEY_FILE"),
+            help="Ed25519 key file; defaults to $LOVISA_SIGNING_KEY_FILE; unsigned if absent",
+        )
+        item.add_argument(
+            "--evaluation",
+            help="endo-evaluation-v1 report for this exact model; default <model-dir>/evaluation.json if present",
+        )
         item.add_argument("--patient-id", default="synthetic-checklist")
         item.add_argument("--study-id", default=None)
         item.add_argument("--model-dir")
@@ -68,6 +82,11 @@ def main():
             )
     args = parser.parse_args()
     command = args.command
+    if command == "keygen":
+        from endo_contracts.producer_signature import generate_key
+
+        print(json.dumps({"producer": "lovisa-endo", **generate_key(args.output)}, indent=2))
+        return
     if command == "split":
         from endo.data import freeze
 
@@ -165,7 +184,18 @@ def main():
                 "Synthetic-only weights cannot analyse public research images"
             )
         p, model = predictor.predict(source)
+        evaluation = args.evaluation or (
+            Path(args.model_dir) / "evaluation.json"
+            if (Path(args.model_dir) / "evaluation.json").is_file()
+            else None
+        )
+        from endo.evaluate import declared_performance
+
+        performance = declared_performance(predictor.info, evaluation)
     else:
+        if args.evaluation:
+            raise ValueError("The non-ML fixture has no model evaluation")
+        performance = None
         if args.backend != "onnx-cpu":
             raise ValueError("Fixture is CPU-only")
         p = fixture_probability(source)
@@ -191,6 +221,8 @@ def main():
         research=json.loads(Path(args.research_provenance).read_text())
         if command == "infer" and args.research_provenance
         else None,
+        signing_key=args.signing_key,
+        performance=performance,
     )
     print(
         json.dumps(

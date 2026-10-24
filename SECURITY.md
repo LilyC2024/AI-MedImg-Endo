@@ -16,7 +16,10 @@ Model installers and local filesystem/process administrators are trusted. Never
 load an untrusted ONNX graph or checkpoint merely because its hash matches a
 manifest. PyTorch loading uses `weights_only=True`; registration checks bind
 checkpoint, configuration, ONNX and numeric parity evidence. A malicious operator
-who rewrites every local hash is outside this unsigned workspace threat model.
+who rewrites every local hash is outside this workspace threat model. Exported
+bundles can carry an Ed25519 producer signature (`keygen`, `--signing-key` or
+`LOVISA_SIGNING_KEY_FILE`); keep that private key owner-only (0600) and outside
+Git. A signature identifies the key holder, not model correctness or permission.
 
 ## Enforced boundaries
 

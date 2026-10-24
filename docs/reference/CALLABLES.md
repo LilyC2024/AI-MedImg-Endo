@@ -132,13 +132,13 @@ Implementation module; see the linked source and module guide.
 
 Local commands. Setup/training are explicit; runtime never fetches models/data.
 
-#### [main](../../src/endo/cli.py#L15)
+#### [main](../../src/endo/cli.py#L16)
 
 `main()`
 
 Dispatch explicit local workflow commands without automatic clinical decisions.
 
-Static calls (including nested helper bodies): `argparse.ArgumentParser`, `parser.add_subparsers`, `sub.add_parser`, `split.add_argument`, `syn.add_argument`, `train.add_argument`, `export.add_argument`, `ev.add_argument`, `parser.parse_args`, `print`, `create`, `item.add_argument`, `freeze`, `Path` (additional calls in source).
+Static calls (including nested helper bodies): `argparse.ArgumentParser`, `parser.add_subparsers`, `sub.add_parser`, `split.add_argument`, `syn.add_argument`, `train.add_argument`, `export.add_argument`, `ev.add_argument`, `keygen.add_argument`, `parser.parse_args`, `print`, `create`, `item.add_argument`, `freeze` (additional calls in source).
 
 Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
 
@@ -250,6 +250,19 @@ Static calls (including nested helper bodies): `load_manifest`, `Predictor`, `ge
 
 Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
 
+#### [declared_performance](../../src/endo/evaluate.py#L133)
+
+`declared_performance(registration, evaluation_path)`
+
+Signed false-positive claim for the exact registered ONNX model, if evaluated.
+
+The rate is 1 - box-region precision proxy on the frozen test partition. An
+evaluation of a different model is rejected rather than silently reused.
+
+Static calls (including nested helper bodies): `Path(evaluation_path).read_bytes`, `json.loads`, `report.get`, `notes.append`, `Performance`, `ValueError`, `Path`, `str`, `sha`, `'; '.join`.
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
 ## [src/endo/exchange.py](../../src/endo/exchange.py)
 
 Build pending synthetic evidence; never supplies reviewer approval.
@@ -266,11 +279,14 @@ Explicit raised conditions: `ValueError`. See source for triggers; called valida
 
 #### [export_bundle](../../src/endo/exchange.py#L52)
 
-`export_bundle(study, source, probability, *, job_id=None, research=None)`
+`export_bundle(study, source, probability, *, job_id=None, research=None, signing_key=None, performance=None)`
 
 Export only synthetic pending evidence, then validate the complete archive.
 
-Static calls (including nested helper bodies): `regions`, `Bundle`, `io.BytesIO`, `stream.getvalue`, `read_exchange`, `zipfile.ZipFile`, `archive.writestr`, `artifacts.items`, `png`, `array_bytes`, `datetime.now`, `json.dumps`, `overlay_pixels`, `Artifact` (additional calls in source).
+With ``signing_key`` (an Ed25519 key file) the archive carries a producer
+signature whose claims include ``performance`` (default: not measured).
+
+Static calls (including nested helper bodies): `regions`, `Bundle`, `io.BytesIO`, `stream.getvalue`, `read_exchange`, `zipfile.ZipFile`, `archive.writestr`, `artifacts.items`, `sign_archive`, `png`, `array_bytes`, `datetime.now`, `json.dumps`, `load_private_key` (additional calls in source).
 
 ## [src/endo/fixture.py](../../src/endo/fixture.py)
 
@@ -390,7 +406,7 @@ Immutable source/prediction workspaces and explicit separate research review.
 
 #### [create](../../src/endo/workspace.py#L25)
 
-`create(source, p, model, output, *, patient_alias, study_id, input_kind, original_bytes=None, research=None)`
+`create(source, p, model, output, *, patient_alias, study_id, input_kind, original_bytes=None, research=None, signing_key=None, performance=None)`
 
 Persist original bytes, decoded source and immutable predictions separately.
 
@@ -398,7 +414,7 @@ Static calls (including nested helper bodies): `make_study`, `png`, `Path`, `out
 
 Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
 
-#### [verify](../../src/endo/workspace.py#L102)
+#### [verify](../../src/endo/workspace.py#L111)
 
 `verify(output)`
 
@@ -408,7 +424,7 @@ Static calls (including nested helper bodies): `Path`, `Study.model_validate_jso
 
 Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
 
-#### [reviewed_report](../../src/endo/workspace.py#L198)
+#### [reviewed_report](../../src/endo/workspace.py#L207)
 
 `reviewed_report(output, review)`
 
@@ -682,6 +698,157 @@ Explicit raised conditions: `ValueError`. See source for triggers; called valida
 Verify all bytes and derived pixels before storing; hashes are not authenticity.
 
 Static calls (including nested helper bodies): `ValueError`, `_image`, `_probability`, `regions`, `overlay_pixels`, `len`, `zipfile.ZipFile`, `archive.infolist`, `any`, `archive.read`, `Bundle.model_validate`, `sha`, `np.array_equal`, `io.BytesIO` (additional calls in source).
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
+## [src/endo_contracts/producer_signature.py](../../src/endo_contracts/producer_signature.py)
+
+Ed25519 producer signatures for LOVISA review ZIPs.
+
+This file is copied byte-for-byte into the CT companion, the endoscopy companion
+and LOVISA; keep it self-contained. A valid signature from a pinned key shows that
+the holder of that private key exported these exact ``bundle.json`` bytes, which
+in turn hash-bind every artifact. It does not prove model correctness, data
+permission, clinical truth or the signer's qualifications. Research use only.
+
+### [Record](../../src/endo_contracts/producer_signature.py#L30)
+
+Class contract is defined by the fields and methods below.
+
+### [Performance](../../src/endo_contracts/producer_signature.py#L34)
+
+Producer-declared evaluation of the exact model; shown beside candidates.
+
+| Declared field | Type | Default / constraint expression |
+| --- | --- | --- |
+| `measured` | `bool` | `required / supplied by caller` |
+| `metric` | `str` | `Field(min_length=1, max_length=200)` |
+| `false_positive_fraction` | `Optional[float]` | `Field(default=None, ge=0, le=1)` |
+| `test_images` | `Optional[int]` | `Field(default=None, ge=1, strict=True)` |
+| `negative_images` | `Optional[int]` | `Field(default=None, ge=0, strict=True)` |
+| `evaluation_sha256` | `Optional[str]` | `Field(default=None, pattern='^[a-f0-9]{64}$')` |
+| `limitations` | `str` | `Field(min_length=1, max_length=600)` |
+
+#### [Performance.complete](../../src/endo_contracts/producer_signature.py#L46)
+
+`complete(self)`
+
+Static calls (including nested helper bodies): `model_validator`, `any`, `ValueError`.
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
+### [Claims](../../src/endo_contracts/producer_signature.py#L62)
+
+Class contract is defined by the fields and methods below.
+
+| Declared field | Type | Default / constraint expression |
+| --- | --- | --- |
+| `schema_version` | `Literal['lovisa-producer-signature-v1']` | `required / supplied by caller` |
+| `producer` | `Producer` | `required / supplied by caller` |
+| `bundle_sha256` | `str` | `Hex64` |
+| `key_id` | `str` | `Hex64` |
+| `signed_at` | `datetime` | `required / supplied by caller` |
+| `performance` | `Performance` | `required / supplied by caller` |
+
+### [Envelope](../../src/endo_contracts/producer_signature.py#L71)
+
+Class contract is defined by the fields and methods below.
+
+| Declared field | Type | Default / constraint expression |
+| --- | --- | --- |
+| `claims` | `Claims` | `required / supplied by caller` |
+| `signature_b64` | `str` | `Field(min_length=80, max_length=100)` |
+
+### [Check](../../src/endo_contracts/producer_signature.py#L76)
+
+Result of checking an archive against locally pinned producer keys.
+
+| Declared field | Type | Default / constraint expression |
+| --- | --- | --- |
+| `status` | `Literal['verified', 'unsigned', 'untrusted-key']` | `required / supplied by caller` |
+| `producer` | `Optional[Producer]` | `None` |
+| `key_id` | `Optional[str]` | `None` |
+| `label` | `Optional[str]` | `None` |
+| `performance` | `Optional[Performance]` | `None` |
+
+#### [canonical](../../src/endo_contracts/producer_signature.py#L86)
+
+`canonical(value) → bytes`
+
+Static calls (including nested helper bodies): `isinstance`, `value.model_dump`, `json.dumps`.
+
+#### [key_id](../../src/endo_contracts/producer_signature.py#L92)
+
+`key_id(public_raw: bytes) → str`
+
+Static calls (including nested helper bodies): `hashlib.sha256(public_raw).hexdigest`, `hashlib.sha256`.
+
+#### [_crypto](../../src/endo_contracts/producer_signature.py#L96)
+
+`_crypto()`
+
+Static calls (including nested helper bodies): `ValueError`.
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
+#### [_public_raw](../../src/endo_contracts/producer_signature.py#L106)
+
+`_public_raw(public_key) → bytes`
+
+Static calls (including nested helper bodies): `_crypto`, `public_key.public_bytes`.
+
+#### [generate_key](../../src/endo_contracts/producer_signature.py#L113)
+
+`generate_key(path) → dict`
+
+Create a new owner-only PKCS8 private key file; never overwrite an existing one.
+
+Static calls (including nested helper bodies): `_crypto`, `ed25519.Ed25519PrivateKey.generate`, `private.private_bytes`, `Path`, `path.parent.mkdir`, `os.open`, `public_info`, `serialization.NoEncryption`, `os.fdopen`, `handle.write`, `private.public_key`.
+
+#### [public_info](../../src/endo_contracts/producer_signature.py#L130)
+
+`public_info(public_key) → dict`
+
+Static calls (including nested helper bodies): `_public_raw`, `key_id`, `base64.b64encode(raw).decode`, `base64.b64encode`.
+
+#### [load_private_key](../../src/endo_contracts/producer_signature.py#L135)
+
+`load_private_key(path)`
+
+Static calls (including nested helper bodies): `_crypto`, `Path`, `serialization.load_pem_private_key`, `ValueError`, `path.read_bytes`, `isinstance`, `stat.S_IMODE`, `path.stat`.
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
+#### [sign_archive](../../src/endo_contracts/producer_signature.py#L146)
+
+`sign_archive(payload: bytes, private_key, producer, performance=NOT_MEASURED) → bytes`
+
+Return the same archive with an added signature over bundle.json and claims.
+
+Static calls (including nested helper bodies): `Claims`, `Envelope`, `io.BytesIO`, `stream.getvalue`, `zipfile.ZipFile`, `archive.infolist`, `dict`, `archive.writestr`, `archive.namelist`, `ValueError`, `entries.append`, `hashlib.sha256(bundle).hexdigest`, `datetime.now`, `Performance.model_validate` (additional calls in source).
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
+#### [_unique](../../src/endo_contracts/producer_signature.py#L175)
+
+`_unique(pairs)`
+
+Static calls (including nested helper bodies): `ValueError`.
+
+Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
+
+#### [check_archive](../../src/endo_contracts/producer_signature.py#L184)
+
+`check_archive(payload: bytes, trusted: dict) → Check`
+
+Check a signature against ``{key_id: {"producer", "public_key_b64", "label"}}``.
+
+Unsigned archives and signatures from unpinned keys are reported, not trusted;
+callers decide whether to accept them. A present signature that is malformed,
+does not match bundle.json, names the wrong producer or fails verification
+raises ValueError.
+
+Static calls (including nested helper bodies): `_crypto`, `trusted.get`, `base64.b64decode`, `Check`, `hashlib.sha256(bundle).hexdigest`, `ValueError`, `ed25519.Ed25519PublicKey.from_public_bytes(raw).verify`, `zipfile.ZipFile`, `archive.namelist`, `archive.getinfo`, `Envelope.model_validate`, `archive.read`, `key_id`, `canonical` (additional calls in source).
 
 Explicit raised conditions: `ValueError`. See source for triggers; called validators may raise additional exceptions.
 
