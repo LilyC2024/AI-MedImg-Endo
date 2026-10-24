@@ -69,6 +69,6 @@ establish cancer, histology, anatomical location or a normal examination. The
 Kvasir evaluation has no negative examinations and does not establish patient
 independence. No clinical or NPU deployment claim follows from passing tests.
 
-Keep images, weights, workspaces and credentials outside Git. Dataset permission
-is separate from code publication; no project-wide redistribution license has
-been selected. [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md).
+Keep images, weights, workspaces and credentials outside Git. Source code is
+[MIT licensed](LICENSE); dataset and weight permission is separate
+([DATA_TERMS](DATA_TERMS.md)). [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md).

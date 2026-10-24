@@ -37,7 +37,7 @@ are separate jobs. These controls are not a network or operating-system sandbox.
 Disk images, models, workspaces and local reviews are not encrypted by this app.
 Keep them outside Git. Do not publish source images, masks, weights, logs,
 credentials or a real patient reproduction in issues. Dataset/component licenses
-remain separate from code publication; no project-wide code license is selected.
+remain separate from the [MIT code license](LICENSE); see [DATA_TERMS](DATA_TERMS.md).
 
 An image mask cannot establish cancer, histology, normality, anatomical location
 or physical size. Review completion is not regulatory approval. Report suspected

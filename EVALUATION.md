@@ -1,5 +1,19 @@
 # Evaluation — image-first endoscopy research assistant
 
+## MIT license and dataset terms — 24 October 2026
+
+Licensing/documentation only: `LICENSE` (MIT) and `DATA_TERMS.md` added; the
+package declares `license = "MIT"`. No source, contract, model or test changed.
+
+| Executed check | Actual outcome |
+| --- | --- |
+| `python -m pytest -q` (Python 3.12, CPU torch from PyPI) | **71 passed, 1 skipped** (OpenVINO not installed) in 6.03s |
+| CI ruff (`ruff check src tests app.py --select F,I`) | All checks passed |
+| `pip check` after reinstall | No broken requirements found; `License-Expression: MIT` |
+| Docs/API/publication checks | Passed: 19 documents, API reference, publication inventory (59 files) |
+
+Not run: hosted CI, Windows, OpenVINO NPU backend.
+
 ## Expert source review — 24 October 2026
 
 The independent reviewer repaired provenance/ZIP association, frozen-source group/
