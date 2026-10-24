@@ -1,4 +1,4 @@
-﻿annotated-doc==0.0.5
+annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
 click==8.5.0
@@ -9,7 +9,7 @@ idna==3.20
 numpy==2.5.3
 onnxruntime==1.30.0
 opentelemetry-api==1.45.0
-openvino==2026.3.1
+openvino==2026.4.1
 openvino-telemetry==2025.2.0
 packaging==26.3
 pillow==12.3.0
