@@ -1,8 +1,22 @@
 # Evaluation — image-first endoscopy research assistant
 
+## Review-process wording correction — 24 October 2026
+
+Documentation only: the agent review is described as an AI-assisted self-audit.
+No source, contract, model or test changed.
+
+| Executed check | Actual outcome |
+| --- | --- |
+| `python -m pytest -q` (Python 3.12, CPU torch from PyPI) | **71 passed, 1 skipped** (OpenVINO not installed) in 6.37s |
+| CI ruff (`ruff check src tests app.py --select F,I`) | All checks passed |
+| `pip check` | No broken requirements found |
+| Docs/API/publication checks | Passed: 18 documents, API reference, publication inventory (57 files) |
+
+Not run: hosted CI, Windows, OpenVINO NPU backend.
+
 ## Expert source review — 24 October 2026
 
-The independent reviewer repaired provenance/ZIP association, frozen-source group/
+The AI coding-agent reviewer (a self-audit, not independent human review) repaired provenance/ZIP association, frozen-source group/
 target validation, ambiguous model-registration evidence and stale model/backend/
 permission UI state. Shared wire contracts, dependencies, installed models and
 research datasets were unchanged. [Defects and repairs](docs/REVIEW.md).

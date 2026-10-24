@@ -32,3 +32,6 @@ artificial fixtures and permitted aggregate metadata; exclude images, models and
 runtime reviews. Preserve third-party terms. Describe the concrete bug, new
 behavior, tests and residual limitations. A source publication is not deployment
 of a clinical service and adds no runtime LLM agents.
+
+Development is AI-assisted: AI coding agents write and review code under one human
+author. Agent reviews are self-audits, not independent human review.

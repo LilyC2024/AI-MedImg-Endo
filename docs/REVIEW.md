@@ -1,10 +1,12 @@
-# Expert code review — 24 October 2026
+# AI coding-agent code review — 24 October 2026
 
 [Overview](../README.md) · [Validation](VALIDATION.md) · [Evidence](../EVALUATION.md)
 
-An independent endoscopy reviewer inspected data, model registration, inference,
-workspaces, exchanges, UI state and tests. The primary agent checked joint
-compatibility and documentation. These are software reviews, not clinician review.
+An AI coding-agent reviewer (a separate session) inspected data, model
+registration, inference, workspaces, exchanges, UI state and tests. The primary
+agent checked joint compatibility and documentation. This is an AI-assisted
+self-audit under the single author, not independent human review, security review
+or clinician review.
 
 | Finding | Reproduction and repair |
 | --- | --- |
