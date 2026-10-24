@@ -20,8 +20,10 @@ final suite: 90 passed in 10.30s. Actual signed generated endoscopy CLI → LOVI
 synthetic transfer: 0.97s, one candidate, no approvals. No new training performed.
 All transfer work used temporary storage and issued no image or final-report
 approvals. No clinical validation, GPU training or NPU execution is claimed.
-Hosted checks for this new commit are not yet recorded; prior release runs below
-remain historical.
+[Hosted release checks](https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40122854718)
+passed, including Linux/Windows CPU regression and actual tiny artificial train/export.
+[Hosted secret scan and CodeQL](https://github.com/LilyC2024/AI-MedImg-Endo/actions/runs/40122854694)
+also passed. Prior release runs below remain historical.
 
 ## Previous release evidence
 

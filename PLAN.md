@@ -47,4 +47,4 @@ Status: implemented and tested locally — 37 endoscopy tests, actual 24-epoch r
    Status: passed; no inherited branch test claim is treated as a current result.
 9. **Documentation and release preparation** — explain licensing, AI coding-agent
    self-audits, signed versus trusted evidence and actual validation, then regenerate
-   source references and run full checks. Status: pending phase 8.
+   source references and run full checks. Status: complete — 90 local tests, exact shared source, signed transfer and documentation checks passed; main published and hosted CPU/security workflows passed.
